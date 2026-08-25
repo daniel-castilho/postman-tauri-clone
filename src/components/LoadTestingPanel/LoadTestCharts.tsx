@@ -54,7 +54,12 @@ export const MultiLineChart: React.FC<LineChartProps> = ({ title, unit, series }
         <span className="lt-chart-title">{title}</span>
         <span className="lt-chart-unit">{unit}</span>
       </div>
-      <svg viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} className="lt-chart-svg" role="img" aria-label={title}>
+      <svg
+        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+        className="lt-chart-svg"
+        role="img"
+        aria-label={title}
+      >
         {[0.25, 0.5, 0.75].map((fraction) => (
           <line
             key={fraction}
@@ -86,12 +91,13 @@ export const MultiLineChart: React.FC<LineChartProps> = ({ title, unit, series }
   );
 };
 
-const STATUS_BUCKETS: Array<{ label: string; color: string; matches: (code: number) => boolean }> = [
-  { label: '2xx', color: '#22c55e', matches: (code) => code >= 200 && code < 300 },
-  { label: '3xx', color: '#3b82f6', matches: (code) => code >= 300 && code < 400 },
-  { label: '4xx', color: '#f59e0b', matches: (code) => code >= 400 && code < 500 },
-  { label: '5xx', color: '#ef4444', matches: (code) => code >= 500 && code < 600 },
-];
+const STATUS_BUCKETS: Array<{ label: string; color: string; matches: (code: number) => boolean }> =
+  [
+    { label: '2xx', color: '#22c55e', matches: (code) => code >= 200 && code < 300 },
+    { label: '3xx', color: '#3b82f6', matches: (code) => code >= 300 && code < 400 },
+    { label: '4xx', color: '#f59e0b', matches: (code) => code >= 400 && code < 500 },
+    { label: '5xx', color: '#ef4444', matches: (code) => code >= 500 && code < 600 },
+  ];
 
 interface StatusDonutProps {
   statusCodes: Array<{ code: number; count: number }>;
@@ -110,7 +116,9 @@ export const StatusCodeDonut: React.FC<StatusDonutProps> = ({ statusCodes }) => 
     label: 'Errors',
     color: '#71717a',
     count: statusCodes
-      .filter((entry) => entry.code === 0 || !STATUS_BUCKETS.some((bucket) => bucket.matches(entry.code)))
+      .filter(
+        (entry) => entry.code === 0 || !STATUS_BUCKETS.some((bucket) => bucket.matches(entry.code)),
+      )
       .reduce((sum, entry) => sum + entry.count, 0),
   });
 
@@ -126,8 +134,20 @@ export const StatusCodeDonut: React.FC<StatusDonutProps> = ({ statusCodes }) => 
         <span className="lt-chart-unit">{total} requests</span>
       </div>
       <div className="lt-donut-row">
-        <svg viewBox="0 0 140 140" className="lt-donut-svg" role="img" aria-label="Status code distribution">
-          <circle cx="70" cy="70" r={radius} fill="none" stroke="var(--bg-tertiary)" strokeWidth="16" />
+        <svg
+          viewBox="0 0 140 140"
+          className="lt-donut-svg"
+          role="img"
+          aria-label="Status code distribution"
+        >
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="none"
+            stroke="var(--bg-tertiary)"
+            strokeWidth="16"
+          />
           {total > 0 &&
             buckets
               .filter((bucket) => bucket.count > 0)

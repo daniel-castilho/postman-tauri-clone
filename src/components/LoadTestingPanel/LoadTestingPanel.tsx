@@ -21,9 +21,7 @@ const MAX_CHART_POINTS = 240;
 
 function flattenRequests(items: CollectionItem[]): HttpRequest[] {
   return items.flatMap((item) =>
-    'Request' in item
-      ? [item.Request]
-      : flattenRequests(item.Folder.items),
+    'Request' in item ? [item.Request] : flattenRequests(item.Folder.items),
   );
 }
 
@@ -67,12 +65,13 @@ export const LoadTestingPanel: React.FC = () => {
   const [chartPoints, setChartPoints] = useState<LoadTestChartPoint[]>([]);
   const [runningConfig, setRunningConfig] = useState<LoadTestConfigDto | null>(null);
 
-  const activeEnvironment =
-    environments?.find((environment) => environment.id === activeEnvironmentId) ?? {
-      id: 'env_default',
-      name: 'No Environment',
-      variables: [],
-    };
+  const activeEnvironment = environments?.find(
+    (environment) => environment.id === activeEnvironmentId,
+  ) ?? {
+    id: 'env_default',
+    name: 'No Environment',
+    variables: [],
+  };
 
   const handleProgressEvent = useCallback((event: LoadTestProgressEventDto) => {
     setSnapshot(event);
@@ -109,9 +108,8 @@ export const LoadTestingPanel: React.FC = () => {
   }, [handleProgressEvent]);
 
   useEffect(() => {
-    const unlistenPromise = listen<LoadTestProgressEventDto>(
-      'load_test_progress',
-      (event) => handleProgressEvent(event.payload),
+    const unlistenPromise = listen<LoadTestProgressEventDto>('load_test_progress', (event) =>
+      handleProgressEvent(event.payload),
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -303,16 +301,32 @@ export const LoadTestingPanel: React.FC = () => {
             title="Requests per Second"
             unit="req/s over time"
             series={[
-              { label: 'RPS', color: '#8b5cf6', values: chartPoints.map((point) => point.currentRps) },
+              {
+                label: 'RPS',
+                color: '#8b5cf6',
+                values: chartPoints.map((point) => point.currentRps),
+              },
             ]}
           />
           <MultiLineChart
             title="Latency Percentiles"
             unit="milliseconds over time"
             series={[
-              { label: 'p50', color: '#22c55e', values: chartPoints.map((point) => point.percentiles.p50Ms) },
-              { label: 'p95', color: '#f59e0b', values: chartPoints.map((point) => point.percentiles.p95Ms) },
-              { label: 'p99', color: '#ef4444', values: chartPoints.map((point) => point.percentiles.p99Ms) },
+              {
+                label: 'p50',
+                color: '#22c55e',
+                values: chartPoints.map((point) => point.percentiles.p50Ms),
+              },
+              {
+                label: 'p95',
+                color: '#f59e0b',
+                values: chartPoints.map((point) => point.percentiles.p95Ms),
+              },
+              {
+                label: 'p99',
+                color: '#ef4444',
+                values: chartPoints.map((point) => point.percentiles.p99Ms),
+              },
             ]}
           />
           <StatusCodeDonut statusCodes={snapshot?.statusCodes ?? []} />

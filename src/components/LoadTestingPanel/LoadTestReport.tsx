@@ -21,7 +21,10 @@ function formatMethod(method: LoadTestConfigDto['targetRequest']['method']): str
   return typeof method === 'string' ? method : method.CUSTOM;
 }
 
-export function buildMarkdownReport(config: LoadTestConfigDto | null, snapshot: LoadTestProgressEventDto): string {
+export function buildMarkdownReport(
+  config: LoadTestConfigDto | null,
+  snapshot: LoadTestProgressEventDto,
+): string {
   const lines: string[] = [
     '# Tyny Pulse — Load Test Report',
     '',
@@ -70,9 +73,7 @@ export function buildMarkdownReport(config: LoadTestConfigDto | null, snapshot: 
     '| :--- | :--- |',
     ...[...snapshot.statusCodes]
       .sort((a, b) => b.count - a.count)
-      .map(
-        (entry) => `| ${entry.code === 0 ? 'transport error' : entry.code} | ${entry.count} |`,
-      ),
+      .map((entry) => `| ${entry.code === 0 ? 'transport error' : entry.code} | ${entry.count} |`),
     '',
     '---',
     '',
@@ -92,7 +93,11 @@ export const LoadTestReport: React.FC<LoadTestReportProps> = ({ config, snapshot
       config,
       summary: snapshot,
     };
-    downloadFile(`load-test-${snapshot.testId}.json`, JSON.stringify(payload, null, 2), 'application/json');
+    downloadFile(
+      `load-test-${snapshot.testId}.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json',
+    );
   };
 
   const exportMarkdown = (): void => {
