@@ -28,6 +28,7 @@ mod tests {
         MockRule, MockServerStatus, MonitorDefinition,
         MonitorReport, RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput,
         StatusCodeCountDto, SyncChange,
+        RunReportFormat,
         TestResult, Url, VariableType, WorkspaceBundle, WorkspaceMember,
     };
 
@@ -111,6 +112,9 @@ mod tests {
         DesignSpec::export_all(&cfg).unwrap();
         LintSeverity::export_all(&cfg).unwrap();
         LintIssue::export_all(&cfg).unwrap();
+
+        // Run report rendering (shared by GUI and headless CLI)
+        RunReportFormat::export_all(&cfg).unwrap();
 
         // IPC error envelope
         AppError::export_all(&cfg).unwrap();

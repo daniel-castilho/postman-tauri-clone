@@ -545,3 +545,13 @@ pub struct GitFileDiffDto {
     pub path: String,
     pub chunks: Vec<GitDiffChunkDto>,
 }
+
+// --- Shared run-report rendering (GUI + headless CLI) ---
+
+/// Output formats supported by the shared run-report renderers.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum RunReportFormat {
+    Html,
+    Markdown,
+}

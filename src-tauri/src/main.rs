@@ -133,6 +133,7 @@ fn main() {
             application::commands::load_test::start_load_test,
             application::commands::load_test::stop_load_test,
             application::commands::load_test::get_load_test_status,
+            application::commands::report_tasks::render_run_report,
             presentation::commands::start_monitor,
             presentation::commands::stop_monitor,
             presentation::commands::invite_user,

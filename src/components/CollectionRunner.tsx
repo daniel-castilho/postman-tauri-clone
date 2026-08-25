@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Play, X, CheckCircle2, XCircle, Loader2, BarChart3 } from 'lucide-react';
+import {
+  Play,
+  X,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  BarChart3,
+  FileCode2,
+  FileText,
+} from 'lucide-react';
 import { useWorkspaceStore } from '../store/workspaceStore';
+import { downloadTextFile } from '../lib/download';
 import type {
   CollectionItem,
   CollectionRunReport,
   Environment,
   RequestRunResult,
+  RunReportFormat,
   TestResult,
 } from '../types/ipc';
+import { toast } from 'sonner';
 import './CollectionRunner.css';
 
 interface CollectionRunnerProps {
@@ -23,11 +35,29 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
   const [running, setRunning] = useState(false);
   const [report, setReport] = useState<CollectionRunReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const runDurationRef = useRef<number>(0);
+
+  const exportReport = async (format: RunReportFormat, extension: string): Promise<void> => {
+    if (!report) return;
+    try {
+      const contents = await invoke<string>('render_run_report', {
+        collectionName: 'Collection Run',
+        report,
+        durationMs: Math.round(runDurationRef.current),
+        format,
+      });
+      downloadTextFile(`collection-run-report.${extension}`, contents, `text/${extension}`);
+      toast.success(`${extension.toUpperCase()} report downloaded`);
+    } catch (e) {
+      toast.error(typeof e === 'string' ? e : JSON.stringify(e));
+    }
+  };
 
   const handleRun = async () => {
     setRunning(true);
     setReport(null);
     setError(null);
+    const startedAt = performance.now();
     try {
       const result = await invoke<CollectionRunReport>('run_collection', {
         items,
@@ -35,6 +65,7 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
         globals,
         sessionVars: sessionVariables,
       });
+      runDurationRef.current = performance.now() - startedAt;
       setReport(result);
     } catch (e) {
       setError(typeof e === 'string' ? e : JSON.stringify(e));
@@ -124,6 +155,21 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="report-export-row">
+                <button
+                  className="finish-run-btn"
+                  onClick={() => void exportReport('Html', 'html')}
+                >
+                  <FileCode2 size={16} /> Export HTML
+                </button>
+                <button
+                  className="finish-run-btn"
+                  onClick={() => void exportReport('Markdown', 'md')}
+                >
+                  <FileText size={16} /> Export Markdown
+                </button>
               </div>
 
               <button onClick={onClose} className="finish-run-btn">

@@ -340,7 +340,7 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 - [x] Headless CLI runner (`tyny-cli`) with JSON/JUnit reports and CI exit codes
 - [x] Git-native workspace collaboration (in-app panel, diffs, branches, push/pull)
 - [x] Tokio load testing engine (P4): 1–500 VUs with ramp-up, lock-free `mpsc` aggregation, live `load_test_progress` events at 200ms, real-time RPS/latency/status charts, JSON & Markdown report export
-- [ ] Collection Runner with exportable HTML/Markdown reports
+- [x] Collection Runner with exportable HTML/Markdown reports (shared Rust renderers power both the GUI export and the headless CLI `--format html`)
 - [ ] Cloud sync opt-in via `tyny.ca` relay
 
 ---

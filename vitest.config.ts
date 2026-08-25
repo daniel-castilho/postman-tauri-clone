@@ -22,6 +22,7 @@ export default defineConfig({
         'src/components/LoadTestingPanel/LoadTestCharts.tsx',
         'src/components/LoadTestingPanel/LoadTestReport.tsx',
         'src/components/WorkspaceSelector.tsx',
+        'src/components/CollectionRunner.tsx',
       ],
       exclude: ['src/types/generated/**', '**/*.d.ts', 'src/__tests__/**'],
       thresholds: {

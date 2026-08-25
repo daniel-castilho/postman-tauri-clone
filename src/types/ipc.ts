@@ -51,6 +51,7 @@ export type { MonitorDefinition } from './generated/MonitorDefinition';
 export type { MonitorReport } from './generated/MonitorReport';
 export type { RequestId } from './generated/RequestId';
 export type { RequestRunResult } from './generated/RequestRunResult';
+export type { RunReportFormat } from './generated/RunReportFormat';
 export type { ScriptLog } from './generated/ScriptLog';
 export type { ScriptLibraryInfo } from './generated/ScriptLibraryInfo';
 export type { SendRequestOutput } from './generated/SendRequestOutput';

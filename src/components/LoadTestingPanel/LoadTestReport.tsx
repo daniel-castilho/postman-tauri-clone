@@ -1,20 +1,11 @@
 import React from 'react';
-import { FileJson, FileText, Download } from 'lucide-react';
+import { FileJson, FileText } from 'lucide-react';
+import { downloadTextFile } from '../../lib/download';
 import type { LoadTestConfigDto, LoadTestProgressEventDto } from '../../types/ipc';
 
 interface LoadTestReportProps {
   config: LoadTestConfigDto | null;
   snapshot: LoadTestProgressEventDto | null;
-}
-
-function downloadFile(fileName: string, content: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
 }
 
 function formatMethod(method: LoadTestConfigDto['targetRequest']['method']): string {
@@ -93,7 +84,7 @@ export const LoadTestReport: React.FC<LoadTestReportProps> = ({ config, snapshot
       config,
       summary: snapshot,
     };
-    downloadFile(
+    downloadTextFile(
       `load-test-${snapshot.testId}.json`,
       JSON.stringify(payload, null, 2),
       'application/json',
@@ -101,7 +92,7 @@ export const LoadTestReport: React.FC<LoadTestReportProps> = ({ config, snapshot
   };
 
   const exportMarkdown = (): void => {
-    downloadFile(
+    downloadTextFile(
       `load-test-${snapshot.testId}.md`,
       buildMarkdownReport(config, snapshot),
       'text/markdown',
@@ -126,7 +117,6 @@ export const LoadTestReport: React.FC<LoadTestReportProps> = ({ config, snapshot
           Export Markdown
         </button>
       </div>
-      <Download size={14} className="lt-report-watermark" />
     </div>
   );
 };
