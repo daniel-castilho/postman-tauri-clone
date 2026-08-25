@@ -51,16 +51,19 @@ Sources of truth: `README.md`, `package.json`, `src-tauri/Cargo.toml`, `src-taur
 
 ## 🛠️ Commands Matrix
 
-| Purpose                                | Command                       | Location     |
-| :------------------------------------- | :---------------------------- | :----------- |
-| **Run Dev Application (Tauri + Vite)** | `npm run tauri dev`           | Root         |
-| **Run Frontend Dev Server Only**       | `npm run dev`                 | Root         |
-| **Typecheck & Web Build**              | `npm run build`               | Root         |
-| **Build Production Native Package**    | `npm run tauri build`         | Root         |
-| **Rust Fast Compile Check**            | `cargo check`                 | `src-tauri/` |
-| **Run Pure Rust Unit Tests**           | `cargo test`                  | `src-tauri/` |
-| **Run Rust Linter (Clippy)**           | `cargo clippy -- -D warnings` | `src-tauri/` |
-| **Automated Project Renaming**         | `./rename_to_tyny_pulse.sh`   | Root         |
+| Purpose                                | Command                         | Location     |
+| :------------------------------------- | :------------------------------ | :----------- |
+| **Run Dev Application (Tauri + Vite)** | `npm run tauri dev`             | Root         |
+| **Run Frontend Dev Server Only**       | `npm run dev`                   | Root         |
+| **Typecheck & Web Build**              | `npm run build`                 | Root         |
+| **Build Production Native Package**    | `npm run tauri build`           | Root         |
+| **Rust Fast Compile Check**            | `cargo check`                   | `src-tauri/` |
+| **Run Pure Rust Unit Tests**           | `cargo test`                    | `src-tauri/` |
+| **Run Rust Linter (Clippy)**           | `cargo clippy -- -D warnings`   | `src-tauri/` |
+| **Frontend unit tests (Vitest)**       | `npm test`                      | Root         |
+| **Frontend coverage (80% gate)**       | `npm run test:coverage`         | Root         |
+| **Rust coverage (cargo-llvm-cov)**     | `bash scripts/coverage-rust.sh` | Root         |
+| **Automated Project Renaming**         | `./rename_to_tyny_pulse.sh`     | Root         |
 
 ---
 
@@ -166,6 +169,7 @@ Items currently deferred or awaiting optimization. Do **not** silently introduce
 6. **Loose `any` Types at Store Edge:** Resolved — the Zustand store now uses the curried typed `create<WorkspaceState>()(…)` form and all IPC payloads are typed against the generated contracts (`src/types/ipc.ts`). Enforced by `eslint` with `@typescript-eslint/no-explicit-any` at error level.
 7. **CLI stdout on Windows Release Builds:** Resolved by the dedicated `tyny-cli` bin target (`src-tauri/src/bin/tyny-cli.rs`), which carries no `windows_subsystem` attribute; the desktop `tyny-pulse` binary keeps GUI subsystem semantics and CLI parity in debug builds.
 8. **Consultative React Hooks Rules:** The new-generation `react-hooks/set-state-in-effect`, `react-hooks/immutability` and `react-hooks/exhaustive-deps` rules run as **warnings** in ESLint (see `eslint.config.mjs`) because fixing them requires an architectural pass over data-loading effects in every panel. Promote them to `error` after that refactor.
+9. **Coverage gated surfaces:** Vitest's 80% gate currently instruments `src/lib/**` only (`vitest.config.ts`). Rust `cargo-llvm-cov` ignores untested IPC wrappers and bootstrap via `--ignore-filename-regex` in `scripts/coverage-rust.sh`. Expand both surfaces as tests land; do not lower the 80% floors.
 
 ---
 

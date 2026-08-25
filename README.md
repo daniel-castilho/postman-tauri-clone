@@ -23,6 +23,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
 - [Commands](#commands)
+- [Code Coverage](#code-coverage)
 - [Automation & JS Scripting Sandbox](#automation--js-scripting-sandbox)
 - [Protocol Support](#protocol-support)
 - [Security & Local-First Philosophy](#security--local-first-philosophy)
@@ -56,7 +57,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 | **Core & Desktop Engine**   | ![Tauri](https://img.shields.io/badge/Tauri_v2-24C8D5?style=for-the-badge&logo=tauri&logoColor=white) ![Rust](https://img.shields.io/badge/Rust_Tokio-000000?style=for-the-badge&logo=rust&logoColor=white)                                                                                                    |
 | **HTTP & Runtime Services** | `reqwest` (HTTP Client), `QuickJS` (JS Sandbox), `tokio` (Async Multithreading)                                                                                                                                                                                                                                |
 | **Frontend Framework**      | ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)                                                                                        |
-| **Build & Styling**         | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) Custom Glassmorphism CSS / CSS Modules, Framer Motion, Lucide Icons                                                                                                                                              |
+| **Build & Styling**         | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) Custom Glassmorphism CSS / CSS Modules, Framer Motion, Lucide Icons                                                                                                                                            |
 | **State Management**        | ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white)                                                                                                                                                                                                         |
 | **Security**                | AES-256-GCM encryption at rest                                                                                                                                                                                                                                                                                 |
 | **Target OS**               | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) |
@@ -100,6 +101,9 @@ Ensure you have the following installed on your development environment:
 
 - **Node.js**: v18.0.0 or higher
 - **Rust**: 1.75.0 or higher (`rustup`)
+- **Coverage tooling** (optional, required for `scripts/coverage-rust.sh`):
+  - `rustup component add llvm-tools-preview`
+  - `cargo install cargo-llvm-cov --locked`
 - **System Dependencies** (Linux / WSL2):
   ```bash
   sudo apt update
@@ -171,14 +175,63 @@ A ready-to-copy GitHub Actions workflow lives in [`.github/workflows/tyny-cli-ci
 
 ## Commands
 
-| Purpose                           | Command                       |
-| :-------------------------------- | :---------------------------- |
-| **Run Dev Server (Vite + Tauri)** | `npm run tauri dev`           |
-| **Run Web Preview Only**          | `npm run dev`                 |
-| **Type Check & Web Build**        | `npm run build`               |
-| **Build Native Desktop Binary**   | `npm run tauri build`         |
-| **Run Rust Backend Checks**       | `cd src-tauri && cargo check` |
-| **Run Rust Tests**                | `cd src-tauri && cargo test`  |
+| Purpose                            | Command                         |
+| :--------------------------------- | :------------------------------ |
+| **Run Dev Server (Vite + Tauri)**  | `npm run tauri dev`             |
+| **Run Web Preview Only**           | `npm run dev`                   |
+| **Type Check & Web Build**         | `npm run build`                 |
+| **Build Native Desktop Binary**    | `npm run tauri build`           |
+| **Run Rust Backend Checks**        | `cd src-tauri && cargo check`   |
+| **Run Rust Tests**                 | `cd src-tauri && cargo test`    |
+| **Frontend unit tests (Vitest)**   | `npm test`                      |
+| **Frontend coverage (fail < 80%)** | `npm run test:coverage`         |
+| **Rust coverage (fail < 80%)**     | `bash scripts/coverage-rust.sh` |
+
+---
+
+## Code Coverage
+
+Tyny Pulse enforces JaCoCo-style coverage gates on both stacks: HTML + LCOV reports, and a **minimum of 80% lines and 80% functions**. The frontend also requires 80% statements and 75% branches. CI (`.github/workflows/coverage.yml`) fails the PR when any threshold is missed.
+
+### Rust (`cargo-llvm-cov`, source-based)
+
+Install once:
+
+```bash
+rustup component add llvm-tools-preview
+cargo install cargo-llvm-cov --locked
+```
+
+Run (from the repository root):
+
+```bash
+bash scripts/coverage-rust.sh
+```
+
+Equivalent manual invocation:
+
+```bash
+# cargo-llvm-cov cannot emit HTML and LCOV in one invocation; the helper script
+# runs tests once (--no-report) then writes both reports and applies thresholds.
+cargo llvm-cov --manifest-path src-tauri/Cargo.toml --no-report
+cargo llvm-cov report --manifest-path src-tauri/Cargo.toml --html --output-dir coverage/rust/html
+cargo llvm-cov report --manifest-path src-tauri/Cargo.toml --lcov --output-path coverage/rust/lcov.info
+cargo llvm-cov report --manifest-path src-tauri/Cargo.toml --fail-under-lines 80 --fail-under-functions 80
+```
+
+Reports land in `coverage/rust/` (`html/index.html` and `lcov.info`). The `coverage/` directory is gitignored.
+
+The 80% gate currently applies to the **well-tested Rust modules** (load-test service, CLI, reporters, script libraries, git initializer, and related command tests). Untested IPC wrappers and desktop bootstrap (`main.rs`) are excluded via `--ignore-filename-regex` in `scripts/coverage-rust.sh`. Shrink that ignore list as tests land; do not lower the threshold.
+
+### Frontend (Vitest + `@vitest/coverage-v8`)
+
+```bash
+npm run test:coverage
+```
+
+Reports land in `coverage/frontend/`. Thresholds are configured in `vitest.config.ts`. The first gated surface is `src/lib/**` (pure helpers with sample tests); expand `coverage.include` as store and component tests grow. Sample tests live in `src/__tests__/`.
+
+If `CODECOV_TOKEN` is set as a GitHub Actions secret, LCOV files are also uploaded to Codecov.
 
 ---
 
@@ -294,12 +347,12 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 
 ## Documentation & License
 
-| Document                                             | Purpose                                                           |
-| :--------------------------------------------------- | :---------------------------------------------------------------- |
-| [`README.md`](README.md)                             | Project overview, architecture, setup, and scripting guide        |
-| [`AGENTS.md`](AGENTS.md)                             | Guidelines for AI agents and human contributors                   |
-| [`docs/progress.md`](docs/progress.md)               | Feature implementation roadmap & architectural milestones         |
-| [`rename_to_tyny_pulse.sh`](rename_to_tyny_pulse.sh) | Automated script to rename package references across the codebase |
+| Document                                             | Purpose                                                            |
+| :--------------------------------------------------- | :----------------------------------------------------------------- |
+| [`README.md`](README.md)                             | Project overview, architecture, setup, and scripting guide         |
+| [`AGENTS.md`](AGENTS.md)                             | Guidelines for AI agents and human contributors                    |
+| [`docs/progress.md`](docs/progress.md)               | Feature implementation roadmap & architectural milestones          |
+| [`rename_to_tyny_pulse.sh`](rename_to_tyny_pulse.sh) | Automated script to rename package references across the codebase  |
 | [`LICENSE`](LICENSE)                                 | MIT License — full legal text of the project's open-source license |
 
 Tyny Pulse is released under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
