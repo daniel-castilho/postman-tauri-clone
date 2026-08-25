@@ -38,6 +38,11 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
+          # Windows MUST use the GNU *host* toolchain (not just the target):
+          # tauri-build/embed-resource generates resource.lib with windres,
+          # which MinGW ld can read. With an MSVC host, resource.lib comes out
+          # in COFF/MSVC format and linking fails ("file format not recognized").
+          toolchain: ${{ matrix.platform == 'windows-latest' && 'stable-x86_64-pc-windows-gnu' || 'stable' }}
           targets: ${{ matrix.targets }}
 
       - name: install dependencies (ubuntu only)
