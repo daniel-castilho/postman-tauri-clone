@@ -31,3 +31,11 @@ Practical findings from developing, testing, and hardening **Tyny Pulse**. Add t
 ## 4. Pending Lessons & Future Log
 
 *(This section is updated as new debugging lessons and infrastructure findings emerge during development.)*
+
+---
+
+## 5. CI/CD Lessons (GitHub Actions)
+
+- **Tauri v2 requires the WebKitGTK 4.1 stack on Ubuntu CI runners:** installing the Tauri v1-era `libwebkit2gtk-4.0-dev` makes `javascriptcore-rs-sys` / `soup3-sys` build scripts fail with "The file `<lib>.pc` needs to be installed and PKG_CONFIG_PATH..." errors. The correct set (Ubuntu >= 22.04) is `libwebkit2gtk-4.1-dev`, `libsoup-3.0-dev`, `libjavascriptcoregtk-4.1-dev`, `libgtk-3-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`, `pkg-config`. Sources: tauri-apps/tauri-action#720, tauri-apps/tauri#3701.
+- **Frontend bundle must exist before any Rust build in CI:** with the default `custom-protocol` feature, `tauri::generate_context!` reads `frontendDist` (`../dist`) at compile time via a proc macro that panics when the directory is missing. Always order workflow steps as `npm ci` → `npm run build` → `cargo clippy/test`.
+- **Diagnose from the failed log before touching anything:** `gh run view <id> --log-failed` filtered for `error|##[error]` pinpoints the failing build script in seconds; guessing produces wasted CI round-trips of 3+ minutes each.
