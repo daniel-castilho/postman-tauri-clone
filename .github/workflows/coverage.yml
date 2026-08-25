@@ -9,6 +9,10 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-22.04
+    # `secrets` is not allowed in step-level `if:` expressions, so the token
+    # presence flag is bridged through job env (where secrets ARE allowed).
+    env:
+      HAS_CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -76,7 +80,7 @@ jobs:
           if-no-files-found: warn
 
       - name: upload to Codecov
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        if: env.HAS_CODECOV_TOKEN == 'true'
         uses: codecov/codecov-action@v5
         with:
           files: coverage/frontend/lcov.info,coverage/rust/lcov.info
