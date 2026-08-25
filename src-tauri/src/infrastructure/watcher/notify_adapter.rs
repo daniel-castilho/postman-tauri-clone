@@ -196,13 +196,11 @@ mod tests {
         let mut seen_paths: Vec<String> = Vec::new();
         let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
         while tokio::time::Instant::now() < deadline && seen_paths.is_empty() {
-            if let Ok(change) =
+            if let Ok(Some(change)) =
                 tokio::time::timeout(Duration::from_millis(500), rx.recv()).await
             {
-                if let Some(change) = change {
-                    seen_paths.extend(change.paths);
-                    break;
-                }
+                seen_paths.extend(change.paths);
+                break;
             }
         }
 
