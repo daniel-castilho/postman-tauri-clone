@@ -158,7 +158,7 @@ Follow **Conventional Commits**:
 
 Items currently deferred or awaiting optimization. Do **not** silently introduce new debt — flag items here:
 
-1. **QuickJS WASM/C Bindings Compilation:** Ensure cross-compilation target libraries for Windows (`x86_64-pc-windows-msvc`) and macOS (`aarch64-apple-darwin`) are tested in CI release workflow.
+1. **QuickJS WASM/C Bindings Compilation:** Resolved for CI releases — Windows installers are built with the `x86_64-pc-windows-gnu` toolchain because `quick-js`/`libquickjs-sys` cannot compile QuickJS C sources under MSVC (`cl.exe` rejects GCC extensions); macOS uses the `universal-apple-darwin` target covering both `aarch64` and `x86_64`. See `.github/workflows/release.yml`.
 2. **OpenAPI 3.1 Spec Schema Expansion:** SpecHub currently lints OpenAPI 3.0 specs natively; 3.1 JSON Schema dialect validation rules to be expanded in Phase 7.
 3. **Workspace File Watcher:** FileSystem adapter currently reads JSON files on demand; real-time file watcher (`notify` crate) planned for live multi-window sync.
 4. **Manual Binding Registration:** New IPC types must be added to the export list in `src-tauri/src/application/commands/export_ts_bindings.rs`; consider automating via a proc-macro or build script inventory.
