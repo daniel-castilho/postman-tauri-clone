@@ -243,3 +243,63 @@ pub async fn sync_resource_change(
     use_case.push_change(app_handle, resource_type, resource_id, operation, data).await;
     Ok(())
 }
+
+// --- Script library management (Phase 19) ---
+
+use crate::domain::models::ScriptLibraryInfo;
+use crate::infrastructure::persistence::fs_script_settings_repository::FsScriptSettingsRepository;
+use crate::infrastructure::scripting::libraries::registry;
+use crate::infrastructure::scripting::quickjs_runner::QuickJsScriptRunner;
+
+fn build_library_list(workspace_path: &str) -> Vec<ScriptLibraryInfo> {
+    let repository = FsScriptSettingsRepository::new();
+    let disabled = repository.load_disabled(workspace_path);
+    registry()
+        .iter()
+        .map(|library| ScriptLibraryInfo {
+            name: library.name.to_string(),
+            version: library.version.to_string(),
+            description: library.description.to_string(),
+            enabled: !disabled.iter().any(|name| name == library.name),
+        })
+        .collect()
+}
+
+#[tauri::command]
+pub fn configure_script_engine(
+    workspace_path: String,
+    engine: State<'_, Arc<QuickJsScriptRunner>>,
+) -> Result<(), AppError> {
+    engine.set_settings_dir(Some(workspace_path));
+    Ok(())
+}
+
+#[tauri::command]
+pub fn list_script_libraries(workspace_path: String) -> Vec<ScriptLibraryInfo> {
+    build_library_list(&workspace_path)
+}
+
+#[tauri::command]
+pub fn set_script_library_enabled(
+    workspace_path: String,
+    name: String,
+    enabled: bool,
+) -> Result<Vec<ScriptLibraryInfo>, AppError> {
+    if !registry().iter().any(|library| library.name == name) {
+        return Err(AppError {
+            code: "VALIDATION_ERROR".to_string(),
+            message: format!("Unknown script library '{}'", name),
+        });
+    }
+    let repository = FsScriptSettingsRepository::new();
+    let mut disabled = repository.load_disabled(&workspace_path);
+    if enabled {
+        disabled.retain(|disabled_name| disabled_name != &name);
+    } else if !disabled.contains(&name) {
+        disabled.push(name.clone());
+    }
+    repository
+        .save_disabled(&workspace_path, &disabled)
+        .map_err(AppError::from)?;
+    Ok(build_library_list(&workspace_path))
+}

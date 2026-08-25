@@ -24,7 +24,7 @@ mod tests {
         GlobalVariables, GrpcConfig, GrpcMetadata, Header, HttpScripts, HttpRequest,
         HttpResponse, HttpMethod, KeyValue, LintIssue, LintSeverity, LoadTestConfig,
         LoadTestReport, MemberRole, MockRule, MockServerStatus, MonitorDefinition,
-        MonitorReport, RequestId, RequestRunResult, ScriptLog, SendRequestOutput, SyncChange,
+        MonitorReport,         RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput, SyncChange,
         TestResult, Url, VariableType, WorkspaceBundle, WorkspaceMember,
     };
 
@@ -87,6 +87,9 @@ mod tests {
         MemberRole::export_all(&cfg).unwrap();
         WorkspaceMember::export_all(&cfg).unwrap();
         SyncChange::export_all(&cfg).unwrap();
+
+        // Script library registry (Phase 19 Package Manager)
+        ScriptLibraryInfo::export_all(&cfg).unwrap();
 
         // SpecHub design & governance linting
         DesignSpec::export_all(&cfg).unwrap();

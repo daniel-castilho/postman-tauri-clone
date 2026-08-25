@@ -419,3 +419,16 @@ pub struct LintIssue {
     pub severity: LintSeverity,
     pub path: String, // e.g., "paths./users.get"
 }
+
+/// Metadata for a script library exposed to sandbox scripts via
+/// `require('name')`. `enabled` mirrors the workspace-level
+/// `script-libraries.json` settings file.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ScriptLibraryInfo {
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub enabled: bool,
+}

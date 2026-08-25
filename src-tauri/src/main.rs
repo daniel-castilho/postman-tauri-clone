@@ -90,6 +90,7 @@ fn main() {
         })
         .manage(send_request_usecase)
         .manage(run_collection_usecase)
+        .manage(script_runner.clone())
         .manage(workspace_usecase)
         .manage(ai_tasks_usecase)
         .manage(mock_server_usecase)
@@ -135,7 +136,10 @@ fn main() {
             presentation::designs::create_design,
             presentation::designs::save_design,
             presentation::designs::delete_design,
-            presentation::designs::lint_spec
+            presentation::designs::lint_spec,
+            presentation::commands::configure_script_engine,
+            presentation::commands::list_script_libraries,
+            presentation::commands::set_script_library_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

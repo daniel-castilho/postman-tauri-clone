@@ -1,14 +1,71 @@
 // src-tauri/src/infrastructure/scripting/quickjs_runner.rs
+use super::libraries::{commonjs_wrap, registry, SANDBOX_PRELOAD};
 use crate::application::ports::script_runner::ScriptRunnerPort;
 use crate::domain::errors::DomainError;
 use crate::domain::models::{HttpRequest, HttpResponse, TestResult, ScriptLog};
+use crate::infrastructure::persistence::fs_script_settings_repository::FsScriptSettingsRepository;
 use quick_js::{Context, JsValue};
 
-pub struct QuickJsScriptRunner {}
+use std::sync::RwLock;
+
+pub struct QuickJsScriptRunner {
+    /// Workspace directory holding `script-libraries.json`. `None` keeps
+    /// every registered library enabled (headless runs without a workspace).
+    settings_dir: RwLock<Option<String>>,
+    script_settings: FsScriptSettingsRepository,
+}
 
 impl QuickJsScriptRunner {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            settings_dir: RwLock::new(None),
+            script_settings: FsScriptSettingsRepository::new(),
+        }
+    }
+
+    /// Points the runner at the workspace whose library settings apply.
+    pub fn set_settings_dir(&self, path: Option<String>) {
+        let mut guard = match self.settings_dir.write() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        *guard = path;
+    }
+
+    fn disabled_libraries(&self) -> Vec<String> {
+        let guard = match self.settings_dir.read() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        match guard.as_deref() {
+            Some(dir) => self.script_settings.load_disabled(dir),
+            None => Vec::new(),
+        }
+    }
+
+    /// Builds the module bootstrap evaluated before every user script:
+    /// sandbox polyfills, preloaded (enabled) bundles and the `require`
+    /// resolver.
+    fn build_modules_code(&self) -> String {
+        let disabled = self.disabled_libraries();
+        let mut code = String::from(SANDBOX_PRELOAD);
+        code.push_str("\nvar __tyny_modules = {};\n");
+        for library in registry() {
+            if !disabled.iter().any(|name| name == library.name) {
+                code.push_str(&format!(
+                    "__tyny_modules['{}'] = {};\n",
+                    library.name,
+                    commonjs_wrap(library.source)
+                ));
+            }
+        }
+        code.push_str(
+            "var require = function(name) { \
+             if (Object.prototype.hasOwnProperty.call(__tyny_modules, name)) { \
+             return __tyny_modules[name]; } \
+             throw new Error(\"Module '\" + name + \"' is not available. Installed modules: \" + Object.keys(__tyny_modules).join(', ')); };\n",
+        );
+        code
     }
 }
 
@@ -167,6 +224,8 @@ impl QuickJsScriptRunner {
         );
 
         context.eval(&setup_script).map_err(|e| DomainError::ScriptError(format!("JS Setup Error: {}", e)))?;
+        let modules_code = self.build_modules_code();
+        context.eval(&modules_code).map_err(|e| DomainError::ScriptError(format!("JS Modules Error: {}", e)))?;
         context.eval(script).map_err(|e| DomainError::ScriptError(format!("Script Execution Error: {}", e)))?;
         
         let pm_val: JsValue = context.eval_as("pm").map_err(|e| DomainError::ScriptError(e.to_string()))?;
@@ -234,5 +293,88 @@ impl QuickJsScriptRunner {
         }
 
         Ok((tests, logs, env_vars, global_vars, session_vars))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn require_resolves_bundled_library_inside_test_script() {
+        let runner = QuickJsScriptRunner::new();
+        let mut env = std::collections::HashMap::new();
+        let script = r#"
+            var _ = require('lodash');
+            var crypto = require('crypto-js');
+            pm.test('lodash chunks pairs', function() {
+                if (_.chunk([1,2,3,4], 2).length !== 2) throw new Error('chunk failed');
+            });
+            pm.test('sha256 vector', function() {
+                if (crypto.SHA256('abc').toString() !== 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad') throw new Error('hash failed');
+            });
+        "#;
+        let (tests, _logs, _e, _g, _s) = runner
+            .run_js_script(script, None, env.clone(), env.clone(), env)
+            .expect("script must run");
+        assert_eq!(tests.len(), 2);
+        assert!(tests.iter().all(|t| t.passed), "failures: {:?}", tests);
+    }
+
+    #[test]
+    fn unknown_module_inside_test_is_reported() {
+        let runner = QuickJsScriptRunner::new();
+        let mut env = std::collections::HashMap::new();
+        let script = r#"
+            pm.test('uses missing module', function() {
+                require('not-a-real-module');
+            });
+        "#;
+        let (tests, _logs, _e, _g, _s) = runner
+            .run_js_script(script, None, env.clone(), env.clone(), env)
+            .expect("script must run");
+        assert_eq!(tests.len(), 1);
+        assert!(!tests[0].passed);
+        let error = tests[0].error.as_deref().unwrap_or_default();
+        assert!(error.contains("not available"), "unexpected error: {}", error);
+        assert!(error.contains("lodash"), "error should list installed modules: {}", error);
+    }
+
+    #[test]
+    fn disabled_library_is_not_preloaded() {
+        let workspace_dir = {
+            let dir = std::env::temp_dir().join(format!(
+                "tyny-runner-libs-{}-{}",
+                std::process::id(),
+                uuid::Uuid::new_v4()
+            ));
+            std::fs::create_dir_all(&dir).expect("temp dir");
+            let settings = crate::infrastructure::persistence::fs_script_settings_repository::FsScriptSettingsRepository::new();
+            settings
+                .save_disabled(dir.to_str().expect("utf8 path"), &["lodash".to_string()])
+                .expect("save disabled");
+            dir
+        };
+
+        let runner = QuickJsScriptRunner::new();
+        runner.set_settings_dir(Some(workspace_dir.to_string_lossy().to_string()));
+
+        let mut env = std::collections::HashMap::new();
+        let script = r#"
+            pm.test('dayjs still available', function() {
+                if (typeof require('dayjs') !== 'function') throw new Error('dayjs missing');
+            });
+            pm.test('lodash disabled', function() {
+                try { require('lodash'); throw new Error('should have thrown'); }
+                catch (e) { if (String(e.message || e).indexOf('not available') === -1) throw e; }
+            });
+        "#;
+        let (tests, _logs, _e, _g, _s) = runner
+            .run_js_script(script, None, env.clone(), env.clone(), env)
+            .expect("script must run");
+        assert_eq!(tests.len(), 2);
+        assert!(tests.iter().all(|t| t.passed), "failures: {:?}", tests);
+
+        std::fs::remove_dir_all(workspace_dir).ok();
     }
 }

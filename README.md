@@ -38,6 +38,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 - 📜 **SpecHub (API Design):** Author, preview, and validate OpenAPI 3.0/3.1 specifications with real-time governance linting.
 - 🔐 **Military-Grade Security:** Local secret storage encrypted at rest with AES-256-GCM.
 - 📜 **JavaScript Automation Sandbox:** Execute pre-request logic, post-response assertions, and dynamic environment manipulation using the familiar `pm.*` API powered by QuickJS.
+- 📦 **Script Package Manager:** `require('lodash')`, `require('dayjs')`, `require('crypto-js')` and `require('uuid')` directly inside sandbox scripts — bundled MIT libraries, toggleable per workspace in Workspace Settings.
 - 🚀 **Built-in Load Testing:** Multi-threaded stress testing engine powered by Rust Tokio.
 - 🔄 **Resilient Offline Sync:** Background synchronization queue designed for unstable network conditions.
 - 🧬 **Zero Type-Drift IPC:** Every Tauri command payload is derived from the Rust domain models; TypeScript bindings are generated into `src/types/generated` by `cargo test` and a CI job fails the build if they ever drift.
@@ -207,6 +208,27 @@ pm.test("Validate User Payload", () => {
     pm.environment.set("auth_token", json.token);
 });
 ```
+
+### Bundled Script Libraries
+Sandbox scripts can import well-known MIT libraries via `require`:
+
+```javascript
+const _ = require('lodash');
+const dayjs = require('dayjs');
+const CryptoJS = require('crypto-js');
+const { v4: uuidv4 } = require('uuid');
+
+pm.test("Signed payload is deterministic", () => {
+    const signature = CryptoJS.HmacSHA256(JSON.stringify({ id: uuidv4() }), pm.environment.get("secret"));
+    expect(signature.toString()).to.be.a("string");
+});
+
+pm.test("Formatted timestamp", () => {
+    expect(dayjs().format('YYYY-MM-DD')).to.be.a("string");
+});
+```
+
+Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD-PARTY-NOTICES.md`) and can be enabled or disabled per workspace in **Workspace Settings → Script Libraries**. Unknown modules raise an error listing everything installed.
 
 ---
 

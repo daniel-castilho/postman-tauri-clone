@@ -44,6 +44,7 @@ export type { MonitorReport } from './generated/MonitorReport';
 export type { RequestId } from './generated/RequestId';
 export type { RequestRunResult } from './generated/RequestRunResult';
 export type { ScriptLog } from './generated/ScriptLog';
+export type { ScriptLibraryInfo } from './generated/ScriptLibraryInfo';
 export type { SendRequestOutput } from './generated/SendRequestOutput';
 export type { SyncChange } from './generated/SyncChange';
 export type { TestResult } from './generated/TestResult';

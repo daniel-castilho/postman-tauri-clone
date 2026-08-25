@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Users, UserPlus, Shield, User, Mail, X, CheckCircle2 } from 'lucide-react';
+import { Users, UserPlus, Shield, User, Mail, X, CheckCircle2, Package, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
-import type { MemberRole, WorkspaceMember } from '../types/ipc';
+import type { MemberRole, WorkspaceMember, ScriptLibraryInfo } from '../types/ipc';
+import { useWorkspaceStore } from '../store/workspaceStore';
 import './WorkspaceSettings.css';
 
 interface Props {
@@ -14,10 +15,38 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<MemberRole>('Viewer');
   const [loading, setLoading] = useState(false);
+  const [libraries, setLibraries] = useState<ScriptLibraryInfo[]>([]);
+  const workspacePath = useWorkspaceStore((state: { workspacePath: string }) => state.workspacePath);
 
   useEffect(() => {
     loadMembers();
+    loadLibraries();
   }, []);
+
+  const loadLibraries = async () => {
+    if (!workspacePath) return;
+    try {
+      await invoke('configure_script_engine', { workspacePath });
+      setLibraries(await invoke<ScriptLibraryInfo[]>('list_script_libraries', { workspacePath }));
+    } catch (e) {
+      toast.error("Falha ao carregar bibliotecas de script");
+    }
+  };
+
+  const toggleLibrary = async (library: ScriptLibraryInfo) => {
+    if (!workspacePath) return;
+    try {
+      setLibraries(
+        await invoke<ScriptLibraryInfo[]>('set_script_library_enabled', {
+          workspacePath,
+          name: library.name,
+          enabled: !library.enabled,
+        })
+      );
+    } catch (e) {
+      toast.error(`Falha ao atualizar ${library.name}`);
+    }
+  };
 
   const loadMembers = async () => {
     try {
@@ -95,6 +124,32 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
                     {m.role === 'Admin' ? <Shield size={14} /> : <User size={14} />}
                     {m.role}
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="members-list-section">
+            <h4>Script Libraries</h4>
+            <div className="members-list">
+              {libraries.map(lib => (
+                <div key={lib.name} className="member-row animate-fade-in">
+                  <div className="member-main">
+                    <div className="member-avatar">
+                      <Package size={16} />
+                    </div>
+                    <div className="member-details">
+                      <span className="member-email">{lib.name} <small>v{lib.version}</small></span>
+                      <span className="member-id">{lib.description}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="invite-btn"
+                    onClick={() => toggleLibrary(lib)}
+                    title={lib.enabled ? 'Disable for scripts' : 'Enable for scripts'}
+                  >
+                    {lib.enabled ? <ToggleRight size={18} color="#22c55e" /> : <ToggleLeft size={18} />}
+                  </button>
                 </div>
               ))}
             </div>

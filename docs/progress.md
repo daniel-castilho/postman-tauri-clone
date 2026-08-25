@@ -2,9 +2,16 @@
 
 This document is the global state map of the project. Any AI agent taking over the project must consult this file (together with `AGENTS.md`) to understand the current development phase.
 
-## Current Stage: **Phase 19 (Advanced Scripting & npm Integration)** — Next Focus
+## Current Stage: **Phase 16 (Advanced Collaboration & Presence)** — Next Focus
 
 ---
+
+### Milestones Achieved (Phase 19 Complete ✅ - Advanced Scripting & npm Integration)
+- [x] **`require()` in Sandbox Scripts**: Curated library registry embedded at compile time (`include_str!`) and resolved by a CommonJS-shaped `require('name')` shim inside the QuickJS setup script.
+- [x] **Bundled MIT Libraries**: lodash 4.17.21, dayjs 1.11.13, crypto-js 4.2.0, uuid 8.3.2 (`src-tauri/assets/script-libs/` + THIRD-PARTY-NOTICES.md); each bundle smoke-tested in-sandbox (incl. NIST SHA-256 vector).
+- [x] **In-App Package Manager**: Workspace Settings → Script Libraries section toggles libraries per workspace; persisted to Git-friendly `script-libraries.json`, re-read on every execution.
+- [x] **WebCrypto Polyfill**: `crypto.getRandomValues` shim (Math.random fallback) unblocks uuid@8 inside QuickJS; documented as non-cryptographic.
+- [x] **New IPC Surface**: `configure_script_engine`, `list_script_libraries`, `set_script_library_enabled`; `ScriptLibraryInfo` binding exported via the zero type-drift pipeline.
 
 ### Milestones Achieved (Phase 18 Complete ✅ - Headless Automation & CLI)
 - [x] **Headless CLI Mode**: `tyny-pulse run <collection.json>` executes collections from the terminal without booting the desktop shell (`presentation/cli.rs` branches before the Tauri builder).
@@ -52,11 +59,11 @@ This document is the global state map of the project. Any AI agent taking over t
 
 ### Phase 18: Headless Automation (The CLI) ✅ (Completed — see milestones above)
 
-### Phase 19: Advanced Scripting & npm Integration (NEXT FOCUS)
-- [ ] **Dynamic Dependency Resolver**: Import npm packages inside scripts (expanded QuickJS sandbox).
-- [ ] **In-App Package Manager**: Visual management of external libraries.
+### Phase 19: Advanced Scripting & npm Integration ✅ (Completed — see milestones above)
+- [ ] **Dynamic Dependency Resolver (runtime download)**: Fetch arbitrary npm packages on demand — deferred; needs new crates (`tar`/`flate2`) and network host approval (Rule 5).
+- [ ] **Expanded curated registry**: ajv, moment-timezone and similar candidates.
 
-### Phase 16: Advanced Collaboration & Presence
+### Phase 16: Advanced Collaboration & Presence (NEXT FOCUS)
 - [ ] **Live Avatars/Presence**: Visual identification of active members in the workspace core.
 - [ ] **Conflict Resolution UI**: Merge/diff system for simultaneous edits (Advanced CRDT).
 
@@ -75,4 +82,4 @@ This document is the global state map of the project. Any AI agent taking over t
 * **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
 
 ---
-_Last Updated: August 2026. Phase 18 (Headless Automation & CLI) completed: `tyny-pulse run` with JSON/JUnit reporting and CI exit codes. Next focus: Phase 19 (Advanced Scripting & npm Integration)._
+_Last Updated: August 2026. Phase 19 (Advanced Scripting & npm Integration) completed: `require()` with four bundled MIT libraries and an in-app Package Manager. Next focus: Phase 16 (Advanced Collaboration & Presence)._
