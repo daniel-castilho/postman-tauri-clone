@@ -465,7 +465,7 @@ pub struct DesignSpec {
     pub last_modified: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum LintSeverity {
     Error,

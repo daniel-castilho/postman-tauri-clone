@@ -90,6 +90,7 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **English UI Sweep (debt #5)**: every remaining Portuguese user-facing string translated to English across `App.tsx`, Sidebar, DesignPanel, MockServer, MonitorsPanel, CollectionRunner, WorkspaceSelector, WorkspaceSettings, hooks and the Zustand store — plus the AI prompt strings in `gemini_adapter.rs`. Rule 6 now fully satisfied.
 - [x] **React Hooks Gates (debt #8)**: all nine `react-hooks/*` warnings eliminated by refactoring data-loading effects into guarded loaders / adjust-state-during-render patterns; `set-state-in-effect`, `immutability` and `exhaustive-deps` promoted to **errors** in ESLint.
 - [x] **Binding Drift Guard (debt #4)**: new `export_list_covers_every_ts_annotated_type` test statically parses `domain/models.rs` and fails the build when a `#[ts(export)]` type is not registered for export — dependency-free automation verified against an injected drift probe.
+- [x] **OpenAPI 3.1 Linting (debt #2)**: SpecHub lint upgraded from string matching to a structural, dialect-aware linter — parses JSON/YAML documents, routes 3.0 vs 3.1 rule sets, enforces `jsonSchemaDialect` declaration and flags 2020-12 schema violations (`nullable`, boolean `exclusiveMinimum`, singular `example`, `$dynamic*` keywords) with real line numbers; legacy 3.0 rules preserved.
 
 ---
 
