@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "postman-tauri-clone",
+  "productName": "Tyny Pulse",
   "version": "0.1.0",
-  "identifier": "com.castilho.postman-tauri-clone",
+  "identifier": "ca.tyny.pulse",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "postman-tauri-clone",
+        "title": "Tyny Pulse",
         "width": 800,
         "height": 600
       }
