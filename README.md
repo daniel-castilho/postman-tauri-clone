@@ -113,7 +113,7 @@ Ensure you have the following installed on your development environment:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/daniel-castilho/postman-tauri-clone.git tyny-pulse
+git clone https://github.com/daniel-castilho/tyny-pulse.git
 cd tyny-pulse
 ```
 
