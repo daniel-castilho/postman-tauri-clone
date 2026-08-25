@@ -13,6 +13,7 @@
 Provide a native, high-performance **API load and stress testing engine** directly inside **Tyny Pulse**. Developers can configure virtual user concurrency, execute multi-threaded HTTP load runs via Rust Tokio, measure throughput and latency percentiles (p50, p90, p95, p99), and visualize live performance charts without switching to external tools like k6 or JMeter.
 
 ### In Scope (P4)
+
 - High-concurrency Tokio load testing service in `src-tauri/src/application/services/load_test_service.rs`.
 - Lock-free, zero-contention metric aggregation using Tokio `mpsc` channels.
 - Real-time streaming progress events over Tauri IPC (`load_test_progress`).
@@ -36,6 +37,7 @@ Provide a native, high-performance **API load and stress testing engine** direct
   - Exportable Markdown / JSON summary reports.
 
 ### Out of Scope
+
 - Multi-node distributed agent clustering (single desktop machine execution in P4).
 - Distributed cloud load generators.
 

@@ -30,17 +30,17 @@ S9 Add exportable JSON and Markdown load test summary report generator
 
 ## Stories Breakdown
 
-| ID | Story Title | Priority | Target Modules / Components | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **S1** | Implement `LoadTestService` core struct & configuration validation | Must | `src-tauri/src/application/services/load_test_service.rs` | Handles VUs (1–500), duration, ramp-up, and target request setup |
-| **S2** | Build Tokio worker task loop & reqwest HTTP execution engine | Must | `src-tauri/src/application/services/load_test_service.rs` | Spawns Tokio tasks executing concurrent async HTTP requests |
-| **S3** | Implement lock-free `mpsc` metric aggregator & percentile calculator | Must | `src-tauri/src/application/services/load_test_service.rs` | Single-writer task calculating RPS, p50, p90, p95, p99 percentiles |
-| **S4** | Implement Tauri IPC commands (`start_load_test`, `stop_load_test`) | Must | `src-tauri/src/application/commands/load_test.rs`, `main.rs` | Start and graceful cancellation via `CancellationToken` |
-| **S5** | Stream `load_test_progress` events at 200ms intervals over Tauri IPC | Must | `src-tauri/src/application/commands/load_test.rs` | Emits sampled progress events without flooding the IPC bridge |
-| **S6** | Export TypeScript DTO bindings for LoadTest progress and config | Must | `src-tauri/src/application/commands/export_ts_bindings.rs` | Generates TS interfaces in `src/types/generated/` |
-| **S7** | Build Load Testing Panel layout (VUs slider, duration, request picker) | Must | `src/components/LoadTestingPanel/LoadTestingPanel.tsx` | UI configuration panel with live execution controls |
-| **S8** | Implement real-time animated charts (RPS, Latency p50/p95/p99, Status codes) | Must | `src/components/LoadTestingPanel/LoadTestCharts.tsx` | Live chart rendering using Framer Motion / Recharts / Canvas |
-| **S9** | Add exportable JSON & Markdown load test summary report generator | Must | `src/components/LoadTestingPanel/LoadTestReport.tsx` | Export formatted summary reports for test runs |
+| ID     | Story Title                                                                  | Priority | Target Modules / Components                                  | Notes                                                              |
+| :----- | :--------------------------------------------------------------------------- | :------- | :----------------------------------------------------------- | :----------------------------------------------------------------- |
+| **S1** | Implement `LoadTestService` core struct & configuration validation           | Must     | `src-tauri/src/application/services/load_test_service.rs`    | Handles VUs (1–500), duration, ramp-up, and target request setup   |
+| **S2** | Build Tokio worker task loop & reqwest HTTP execution engine                 | Must     | `src-tauri/src/application/services/load_test_service.rs`    | Spawns Tokio tasks executing concurrent async HTTP requests        |
+| **S3** | Implement lock-free `mpsc` metric aggregator & percentile calculator         | Must     | `src-tauri/src/application/services/load_test_service.rs`    | Single-writer task calculating RPS, p50, p90, p95, p99 percentiles |
+| **S4** | Implement Tauri IPC commands (`start_load_test`, `stop_load_test`)           | Must     | `src-tauri/src/application/commands/load_test.rs`, `main.rs` | Start and graceful cancellation via `CancellationToken`            |
+| **S5** | Stream `load_test_progress` events at 200ms intervals over Tauri IPC         | Must     | `src-tauri/src/application/commands/load_test.rs`            | Emits sampled progress events without flooding the IPC bridge      |
+| **S6** | Export TypeScript DTO bindings for LoadTest progress and config              | Must     | `src-tauri/src/application/commands/export_ts_bindings.rs`   | Generates TS interfaces in `src/types/generated/`                  |
+| **S7** | Build Load Testing Panel layout (VUs slider, duration, request picker)       | Must     | `src/components/LoadTestingPanel/LoadTestingPanel.tsx`       | UI configuration panel with live execution controls                |
+| **S8** | Implement real-time animated charts (RPS, Latency p50/p95/p99, Status codes) | Must     | `src/components/LoadTestingPanel/LoadTestCharts.tsx`         | Live chart rendering using Framer Motion / Recharts / Canvas       |
+| **S9** | Add exportable JSON & Markdown load test summary report generator            | Must     | `src/components/LoadTestingPanel/LoadTestReport.tsx`         | Export formatted summary reports for test runs                     |
 
 ---
 
