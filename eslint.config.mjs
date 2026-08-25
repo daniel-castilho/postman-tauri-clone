@@ -9,7 +9,7 @@ export default tseslint.config(
   {
     // `src/types/generated` is owned by the ts-rs export pipeline
     // (cargo test export_ts_bindings); never hand-edit or lint it.
-    ignores: ['dist/**', 'src-tauri/target/**', 'src/types/generated/**'],
+    ignores: ['dist/**', 'src-tauri/target/**', 'src/types/generated/**', 'coverage/**'],
   },
   {
     files: ['**/*.{ts,tsx}'],

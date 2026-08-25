@@ -4,6 +4,13 @@ This document is the global state map of the project. Any AI agent taking over t
 
 ## Current Stage: **Phase 16 (Advanced Collaboration & Presence)** — Next Focus
 
+### Milestones Achieved (Code Coverage Gates ✅)
+
+- [x] **Rust `cargo-llvm-cov`**: Source-based coverage via `llvm-tools-preview`; HTML + LCOV under `coverage/rust/`; fails below **80% lines / 80% functions** on the currently tested module surface (`scripts/coverage-rust.sh`).
+- [x] **Frontend Vitest + `@vitest/coverage-v8`**: jsdom environment, reporters `text`/`html`/`lcov`, thresholds 80% lines/functions/statements and 75% branches (`vitest.config.ts`, `npm run test:coverage`).
+- [x] **Sample tests**: `src/__tests__/httpStatus.test.ts` (gated `src/lib` surface) and `src/__tests__/workspaceStore.test.ts` (Zustand tab/history/session state with Tauri IPC mocked).
+- [x] **CI**: `.github/workflows/coverage.yml` runs both gates, uploads HTML+LCOV artifacts, and optionally uploads to Codecov when `CODECOV_TOKEN` is present.
+
 ---
 
 ### Milestones Achieved (Git-Native Interface Complete ✅ - P3 Epic)
@@ -72,6 +79,7 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Legacy Preserved**: blocking `run_load_test` contract untouched ("Zero Behavior Change"); new consumers use the streaming commands.
 
 ### Milestones Achieved (Zero Type-Drift Epic Complete ✅ - End-to-End Type Safety)
+
 - [x] **IPC Surface Repair**: All 30+ Tauri commands compile, are registered, and match frontend payloads (`ws_*`, `ai_*`, `run_collection`, designs, monitors, sync, cookies).
 - [x] **ts-rs Integration**: All IPC-crossing domain types derive `TS`; bindings generated into `src/types/generated/` by `cargo test export_ts_bindings` (39 types).
 - [x] **Single Source of Truth**: Frontend consumes generated contracts via the `src/types/ipc.ts` barrel; hand-written duplicate interfaces removed from `workspaceStore.ts`.
@@ -112,4 +120,4 @@ This document is the global state map of the project. Any AI agent taking over t
 
 ---
 
-_Last Updated: August 2026. Git-Native Interface (P3) completed: in-app Git panel over `GitRepositoryPort`/`GitProcessAdapter` with secure `.gitignore` generation and typed IPC. Next focus: Phase 16 (Advanced Collaboration & Presence)._
+_Last Updated: August 2026. Code coverage gates added (`cargo-llvm-cov` + Vitest v8, 80% lines/functions). Next focus: Phase 16 (Advanced Collaboration & Presence)._
