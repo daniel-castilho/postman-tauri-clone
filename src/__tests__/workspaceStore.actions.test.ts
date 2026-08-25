@@ -205,9 +205,7 @@ describe('useWorkspaceStore (collections persistence)', () => {
 
   it('deleteCollection calls the IPC contract and reloads', async () => {
     const state = await freshStore();
-    vi.mocked(invoke)
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce([]);
+    vi.mocked(invoke).mockResolvedValueOnce(undefined).mockResolvedValueOnce([]);
 
     await state.deleteCollection('col_1');
 

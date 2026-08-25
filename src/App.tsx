@@ -532,7 +532,7 @@ function App() {
                     setGeneratedCode(code);
                     setShowCodeModal(true);
                   }}
-                    title="Generate JavaScript code"
+                  title="Generate JavaScript code"
                 >
                   <Code2 size={16} />
                 </button>

@@ -106,10 +106,7 @@ describe('useWorkspaceStore (request updates)', () => {
 
     await state.updateRequest(sampleRequest({ id: 'ghost' }));
 
-    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith(
-      'save_collection',
-      expect.anything(),
-    );
+    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith('save_collection', expect.anything());
   });
 });
 
@@ -210,7 +207,7 @@ describe('useWorkspaceStore (real-time sync listener)', () => {
     });
 
     console.error('DBG handler?', !!syncHandler, 'calls:', vi.mocked(listen).mock.calls.length);
-syncHandler?.({
+    syncHandler?.({
       payload: {
         id: 'chg',
         resource_type: 'Request',

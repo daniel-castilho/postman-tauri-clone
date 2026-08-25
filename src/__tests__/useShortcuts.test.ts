@@ -2,6 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { Environment, HttpRequest } from '../types/ipc';
 
+// Depending on module graph ordering the real Tauri API may leak into this
+// file; stub the internals so its top-level listeners stay harmless.
+(globalThis as Record<string, unknown>).__TAURI_INTERNALS__ ??= {
+  transformCallback: (callback: unknown) => callback,
+  invoke: async () => undefined,
+  metadata: { currentWindow: { label: 'test' }, currentWebview: { label: 'test' } },
+};
+
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));

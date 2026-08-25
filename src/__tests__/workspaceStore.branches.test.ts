@@ -157,10 +157,7 @@ describe('useWorkspaceStore (branch completion)', () => {
     await state.deleteRequest('missing');
     await state.duplicateRequest('missing');
     await state.reorderItems('missing', []);
-    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith(
-      'save_collection',
-      expect.anything(),
-    );
+    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith('save_collection', expect.anything());
   });
 
   it('persistence actions bail out without a workspace path', async () => {
@@ -168,7 +165,13 @@ describe('useWorkspaceStore (branch completion)', () => {
     const state = useWorkspaceStore.getState();
 
     await state.loadCollections();
-    await state.saveCollection({ id: 'col_1', name: 'X', description: null, items: [], variables: {} });
+    await state.saveCollection({
+      id: 'col_1',
+      name: 'X',
+      description: null,
+      items: [],
+      variables: {},
+    });
     await state.deleteCollection('col_1');
     await state.loadEnvironments();
     await state.saveEnvironments();
