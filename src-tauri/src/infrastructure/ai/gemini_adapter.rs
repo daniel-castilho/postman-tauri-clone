@@ -41,12 +41,12 @@ pm.test('Response must be an object', () => {{
         }
         
         let prompt = format!(
-            "Você é um especialista em testes de API. Baseado na URL: '{}' e no corpo da resposta JSON abaixo, gere scripts de teste em JavaScript para o motor Postman. Utilize a sintaxe: pm.test('descrição', () => {{ ... }});
-            
-            Corpo:
+            "You are an expert API test engineer. Based on the URL: '{}' and the JSON response body below, generate JavaScript test scripts for the Postman engine. Use the syntax: pm.test('description', () => {{ ... }});
+
+            Body:
             {}
-            
-            Gere apenas o código JavaScript sem explicações, sem blocos de markdown e sem caracteres extras. Apenas o código puro.",
+
+            Generate only the JavaScript code with no explanations, no markdown blocks and no extra characters. Raw code only.",
             url, response_body
         );
 
@@ -85,10 +85,10 @@ pm.test('Response must be an object', () => {{
 
     async fn explain_response(&self, response_body: &str) -> Result<String, DomainError> {
         if self.api_key.is_empty() || self.api_key == "MOCK_KEY" {
-            return Ok("Configure sua API Key nas configurações para explicações reais.".to_string());
+            return Ok("Configure your API key in settings to enable real explanations.".to_string());
         }
 
-        let prompt = format!("Explique de forma concisa o que esta resposta de API contém:\n\n{}", response_body);
+        let prompt = format!("Explain concisely what this API response contains:\n\n{}", response_body);
         let api_url = format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={}", self.api_key);
         
         let body = json!({ "contents": [{ "parts": [{ "text": prompt }] }] });

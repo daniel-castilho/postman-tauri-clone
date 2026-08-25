@@ -71,7 +71,7 @@ impl DocsGeneratorPort for MarkdownDocsAdapter {
         if let Some(desc) = &collection.description {
             md.push_str(&format!("_{}_\n\n", desc));
         }
-        md.push_str("Documentação gerada automaticamente via **Tyny Pulse**.\n\n");
+        md.push_str("Documentation auto-generated with **Tyny Pulse**.\n\n");
         md.push_str(&self.process_items(&collection.items, 1));
         Ok(md)
     }

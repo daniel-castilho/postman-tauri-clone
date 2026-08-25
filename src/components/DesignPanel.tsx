@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useWorkspaceStore, DesignSpec } from '../store/workspaceStore';
 import type { LintIssue } from '../types/ipc';
 import { Save, AlertTriangle, CheckCircle, Info, Trash2, Plus, Code } from 'lucide-react';
@@ -13,31 +13,36 @@ export const DesignPanel: React.FC = () => {
   const [lintIssues, setLintIssues] = useState<LintIssue[]>([]);
   const [, setShowNewModal] = useState(false);
 
-  useEffect(() => {
-    if (activeDesignId) {
-      const design = designs.find((d) => d.id === activeDesignId);
-      if (design) {
-        setActiveSpec({ ...design });
-        runLint(design.content);
-      }
-    } else {
-      setActiveSpec(null);
-    }
-  }, [activeDesignId, designs]);
-
-  const runLint = async (content: string) => {
+  const runLint = useCallback(async (content: string) => {
     try {
       const issues: LintIssue[] = await invoke('lint_spec', { content });
       setLintIssues(issues);
     } catch (err) {
       console.error('Lint failed:', err);
     }
-  };
+  }, []);
+
+  // Re-sync the local draft whenever the active design id or the store's
+  // design list changes, using React's sanctioned adjust-state-during-render
+  // pattern instead of a cascading effect.
+  const [lastSync, setLastSync] = useState<{ id: string | null; designs: DesignSpec[] } | null>(
+    null,
+  );
+  if (!lastSync || lastSync.id !== (activeDesignId ?? null) || lastSync.designs !== designs) {
+    setLastSync({ id: activeDesignId ?? null, designs });
+    const design = activeDesignId ? designs.find((d) => d.id === activeDesignId) : undefined;
+    if (design) {
+      setActiveSpec({ ...design });
+      void runLint(design.content);
+    } else {
+      setActiveSpec(null);
+    }
+  }
 
   const handleSave = async () => {
     if (activeSpec) {
       await saveDesign(activeSpec);
-      toast.success('Design salvo com sucesso!');
+      toast.success('Design saved successfully!');
     }
   };
 
@@ -46,15 +51,15 @@ export const DesignPanel: React.FC = () => {
       <div className="design-empty-state">
         <Code size={48} />
         <h2>SpecHub: API Design Hub</h2>
-        <p>Selecione um design na barra lateral ou crie um novo para começar.</p>
+        <p>Select a design from the sidebar or create a new one to get started.</p>
         <button className="primary-btn" onClick={() => setShowNewModal(true)}>
-          <Plus size={16} /> Novo Design
+          <Plus size={16} /> New Design
         </button>
       </div>
     );
   }
 
-  if (!activeSpec) return <div className="design-loading">Nenhum design selecionado.</div>;
+  if (!activeSpec) return <div className="design-loading">No design selected.</div>;
 
   return (
     <div className="design-container">
@@ -70,7 +75,7 @@ export const DesignPanel: React.FC = () => {
         </div>
         <div className="design-actions">
           <button className="secondary-btn" onClick={handleSave}>
-            <Save size={16} /> Salvar
+            <Save size={16} /> Save
           </button>
           <button className="danger-btn-ghost" onClick={() => deleteDesign(activeSpec.id)}>
             <Trash2 size={16} />
@@ -108,7 +113,7 @@ export const DesignPanel: React.FC = () => {
             {lintIssues.length === 0 ? (
               <div className="lint-perfect">
                 <CheckCircle size={32} />
-                <p>Sua API segue todos os padrões de Governança!</p>
+                <p>Your API follows all governance standards!</p>
               </div>
             ) : (
               lintIssues.map((issue, idx) => (

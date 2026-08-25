@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {
   Users,
@@ -31,20 +31,42 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
     (state: { workspacePath: string }) => state.workspacePath,
   );
 
-  useEffect(() => {
-    loadMembers();
-    loadLibraries();
+  const loadMembers = useCallback(async () => {
+    try {
+      const list = await invoke<WorkspaceMember[]>('get_members');
+      setMembers(list);
+    } catch {
+      toast.error('Failed to load members');
+    }
   }, []);
 
-  const loadLibraries = async () => {
-    if (!workspacePath) return;
-    try {
-      await invoke('configure_script_engine', { workspacePath });
-      setLibraries(await invoke<ScriptLibraryInfo[]>('list_script_libraries', { workspacePath }));
-    } catch {
-      toast.error('Falha ao carregar bibliotecas de script');
-    }
-  };
+  // Initial load mirrors the guarded inline pattern used by the other
+  // panels (Git panel / mock server): state is only committed while the
+  // component is still mounted.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const list = await invoke<WorkspaceMember[]>('get_members');
+        if (!cancelled) setMembers(list);
+      } catch {
+        toast.error('Failed to load members');
+      }
+    })();
+    void (async () => {
+      if (!workspacePath || cancelled) return;
+      try {
+        await invoke('configure_script_engine', { workspacePath });
+        const libs = await invoke<ScriptLibraryInfo[]>('list_script_libraries', { workspacePath });
+        if (!cancelled) setLibraries(libs);
+      } catch {
+        toast.error('Failed to load script libraries');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [workspacePath]);
 
   const toggleLibrary = async (library: ScriptLibraryInfo) => {
     if (!workspacePath) return;
@@ -57,16 +79,7 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
         }),
       );
     } catch {
-      toast.error(`Falha ao atualizar ${library.name}`);
-    }
-  };
-
-  const loadMembers = async () => {
-    try {
-      const list = await invoke<WorkspaceMember[]>('get_members');
-      setMembers(list);
-    } catch {
-      toast.error('Erro ao carregar membros');
+      toast.error(`Failed to update ${library.name}`);
     }
   };
 
@@ -75,11 +88,11 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
     setLoading(true);
     try {
       await invoke('invite_user', { email: inviteEmail, role: inviteRole });
-      toast.success('Convite enviado com sucesso!');
+      toast.success('Invite sent successfully!');
       setInviteEmail('');
       loadMembers();
     } catch {
-      toast.error('Falha ao enviar convite');
+      toast.error('Failed to send invite');
     } finally {
       setLoading(false);
     }

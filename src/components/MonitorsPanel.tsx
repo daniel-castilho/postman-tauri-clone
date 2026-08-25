@@ -51,9 +51,9 @@ export const MonitorsPanel: React.FC = () => {
       setMonitors([...monitors, monitor]);
       setShowAdd(false);
       setNewMon({ name: '', url: '', interval: 60 });
-      toast.success('Monitor iniciado!');
+      toast.success('Monitor started!');
     } catch {
-      toast.error('Falha ao iniciar monitor');
+      toast.error('Failed to start monitor');
     }
   };
 
@@ -68,7 +68,7 @@ export const MonitorsPanel: React.FC = () => {
         monitors.map((mon) => (mon.id === m.id ? { ...mon, enabled: !mon.enabled } : mon)),
       );
     } catch {
-      toast.error('Erro ao alterar estado do monitor');
+      toast.error('Failed to toggle monitor');
     }
   };
 
@@ -174,7 +174,7 @@ export const MonitorsPanel: React.FC = () => {
         {monitors.length === 0 && !showAdd && (
           <div className="monitors-empty">
             <ShieldCheck size={48} />
-            <p>Seus serviços estão desprotegidos!</p>
+            <p>Your services are unprotected!</p>
             <span>
               Crie monitores para acompanhar o uptime e performance das suas APIs em tempo real.
             </span>

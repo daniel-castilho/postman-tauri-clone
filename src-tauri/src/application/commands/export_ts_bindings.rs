@@ -115,4 +115,65 @@ mod tests {
         // IPC error envelope
         AppError::export_all(&cfg).unwrap();
     }
+
+    /// Drift guard (AGENTS.md debt item #4): every domain type annotated with
+    /// `#[ts(export)]` MUST be registered in the export list above. This test
+    /// parses both files statically, so adding a new `#[derive(TS)]` type
+    /// without registering it fails `cargo test` immediately — no manual
+    /// bookkeeping reviews required.
+    #[test]
+    fn export_list_covers_every_ts_annotated_type() {
+        let models_src = include_str!("../../domain/models.rs");
+        let registry_src = include_str!("export_ts_bindings.rs");
+
+        // Collect `pub struct` / `pub enum` names that carry `#[ts(export)]`.
+        let mut declared: Vec<String> = Vec::new();
+        for segment in models_src.split("#[ts(export)]").skip(1) {
+            let head = &segment[..segment.len().min(400)];
+            let struct_index = head.find("pub struct ");
+            let enum_index = head.find("pub enum ");
+            let keyword_tail = match (struct_index, enum_index) {
+                (Some(s), Some(e)) if s < e => Some(&head[s + "pub struct ".len()..]),
+                (Some(_), Some(e)) => Some(&head[e + "pub enum ".len()..]),
+                (Some(s), None) => Some(&head[s + "pub struct ".len()..]),
+                (None, Some(e)) => Some(&head[e + "pub enum ".len()..]),
+                (None, None) => None,
+            };
+            if let Some(tail) = keyword_tail {
+                let identifier: String = tail
+                    .chars()
+                    .take_while(|character| character.is_alphanumeric() || *character == '_')
+                    .collect();
+                if !identifier.is_empty() {
+                    declared.push(identifier);
+                }
+            }
+        }
+        assert!(
+            !declared.is_empty(),
+            "parser found no #[ts(export)] types in models.rs — inspect the extraction logic"
+        );
+
+        // Collect the names imported from `domain::models` in the registry.
+        let exported_block = registry_src
+            .split("use crate::domain::models::{")
+            .nth(1)
+            .and_then(|rest| rest.split("};").next())
+            .expect("export_ts_bindings.rs must import from crate::domain::models");
+        let exported: std::collections::HashSet<&str> = exported_block
+            .split([',', '\n'])
+            .map(|entry| entry.trim())
+            .filter(|entry| !entry.is_empty())
+            .collect();
+
+        let missing: Vec<&str> = declared
+            .iter()
+            .map(String::as_str)
+            .filter(|name| !exported.contains(name))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "the following #[ts(export)] types are not registered in export_ts_bindings.rs: {missing:?}"
+        );
+    }
 }

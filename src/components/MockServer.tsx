@@ -32,9 +32,20 @@ export const MockServer: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 2000);
-    return () => clearInterval(interval);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const s = await invoke<MockServerStatus>('get_mock_server_status');
+        if (!cancelled) setStatus(s);
+      } catch {
+        // Best effort: failures here must not break the surrounding flow.
+      }
+    })();
+    const interval = setInterval(() => void fetchStatus(), 2000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleStart = async () => {
@@ -43,7 +54,7 @@ export const MockServer: React.FC = () => {
       toast.success('Mock Server iniciado!');
       fetchStatus();
     } catch (e) {
-      toast.error('Erro ao iniciar server', { description: String(e) });
+      toast.error('Failed to start server', { description: String(e) });
     }
   };
 
@@ -110,7 +121,7 @@ export const MockServer: React.FC = () => {
 
       <div className="mock-rules-container">
         <div className="mock-rules-header">
-          <h3>Ações / Regras ({rules.length})</h3>
+          <h3>Actions / Rules ({rules.length})</h3>
           <button className="add-rule-btn" onClick={addRule}>
             <Plus size={16} /> Add Rule
           </button>

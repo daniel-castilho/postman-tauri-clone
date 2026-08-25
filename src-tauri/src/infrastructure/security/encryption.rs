@@ -77,7 +77,7 @@ impl EncryptionManager {
     pub fn decrypt(&self, encrypted_b64: &str) -> Result<String, String> {
         let combined = STANDARD.decode(encrypted_b64).map_err(|e| e.to_string())?;
         if combined.len() < 12 {
-            return Err("Dado criptografado inválido".into());
+            return Err("Invalid encrypted payload".into());
         }
 
         let (nonce_bytes, ciphertext) = combined.split_at(12);

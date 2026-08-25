@@ -55,8 +55,22 @@ export const GitPanel: React.FC<Props> = ({ onClose }) => {
   }, [workspacePath]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    // Initial load without toggling the global busy flag, which is reserved
+    // for user-triggered actions. Re-runs when the workspace path changes.
+    let cancelled = false;
+    void (async () => {
+      if (!workspacePath || cancelled) return;
+      try {
+        const result = await invoke<GitStatusSummaryDto>('git_get_status', { workspacePath });
+        if (!cancelled) setStatus(result);
+      } catch {
+        toast.error('Failed to read Git status');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [workspacePath]);
 
   const runAction = async (action: () => Promise<unknown>, successMessage?: string) => {
     setBusy(true);

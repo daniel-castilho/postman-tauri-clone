@@ -119,64 +119,68 @@ function App() {
   const [response, setResponse] = useState<HttpResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (activeRequest) {
-      setUrl(activeRequest.url);
-      setMethod(activeRequest.method);
-      setHeaders(activeRequest.headers?.length ? activeRequest.headers : []);
+  // Sync editor fields whenever a different request becomes active, using
+  // React's sanctioned adjust-state-during-render pattern instead of a
+  // cascading effect.
+  const [syncedRequestId, setSyncedRequestId] = useState<string | null>(null);
+  if (activeRequest && activeRequest.id !== syncedRequestId) {
+    const next = activeRequest;
+    setSyncedRequestId(next.id);
+    setUrl(next.url);
+    setMethod(next.method);
+    setHeaders(next.headers?.length ? next.headers : []);
 
-      try {
-        const urlObj = new URL(activeRequest.url);
-        const parsedParams: { key: string; value: string; enabled: boolean }[] = [];
-        urlObj.searchParams.forEach((val, key) => {
-          parsedParams.push({ key, value: val, enabled: true });
-        });
-        setParams(parsedParams);
-      } catch {
-        // Best effort: failures here must not break the surrounding flow.
-      }
-
-      let initialBody = '';
-      let initialMode: 'Raw' | 'FormData' | 'GraphQL' | 'None' = 'None';
-      let initialFormData: FormField[] = [];
-
-      if (activeRequest.body) {
-        if ('Raw' in activeRequest.body) {
-          initialBody = activeRequest.body.Raw[0] || '';
-          initialMode = 'Raw';
-        } else if ('FormData' in activeRequest.body) {
-          initialFormData = activeRequest.body.FormData;
-          initialMode = 'FormData';
-        } else if ('GraphQL' in activeRequest.body) {
-          setGqlQuery(activeRequest.body.GraphQL.query || '');
-          setGqlVariables(activeRequest.body.GraphQL.variables || '');
-          initialMode = 'GraphQL';
-        }
-      } else if (typeof activeRequest.body === 'string') {
-        initialBody = activeRequest.body;
-        initialMode = 'Raw';
-      }
-
-      setBody(initialBody);
-      setBodyMode(initialMode);
-      setFormData(initialFormData || []);
-      setAuth(activeRequest.auth);
-      setPreRequestScript(activeRequest.scripts?.preRequest || '');
-      setTestScript(activeRequest.scripts?.tests || '');
-
-      if (activeRequest.grpc_config) {
-        setProtoPath(activeRequest.grpc_config.proto_path || '');
-        setGrpcService(activeRequest.grpc_config.service || '');
-        setGrpcMethod(activeRequest.grpc_config.method || '');
-      } else {
-        setProtoPath('');
-        setGrpcService('');
-        setGrpcMethod('');
-      }
-
-      setResponse(null);
+    try {
+      const urlObj = new URL(next.url);
+      const parsedParams: { key: string; value: string; enabled: boolean }[] = [];
+      urlObj.searchParams.forEach((val, key) => {
+        parsedParams.push({ key, value: val, enabled: true });
+      });
+      setParams(parsedParams);
+    } catch {
+      // Best effort: failures here must not break the surrounding flow.
     }
-  }, [activeRequest]);
+
+    let initialBody = '';
+    let initialMode: 'Raw' | 'FormData' | 'GraphQL' | 'None' = 'None';
+    let initialFormData: FormField[] = [];
+
+    if (next.body) {
+      if ('Raw' in next.body) {
+        initialBody = next.body.Raw[0] || '';
+        initialMode = 'Raw';
+      } else if ('FormData' in next.body) {
+        initialFormData = next.body.FormData;
+        initialMode = 'FormData';
+      } else if ('GraphQL' in next.body) {
+        setGqlQuery(next.body.GraphQL.query || '');
+        setGqlVariables(next.body.GraphQL.variables || '');
+        initialMode = 'GraphQL';
+      }
+    } else if (typeof next.body === 'string') {
+      initialBody = next.body;
+      initialMode = 'Raw';
+    }
+
+    setBody(initialBody);
+    setBodyMode(initialMode);
+    setFormData(initialFormData || []);
+    setAuth(next.auth);
+    setPreRequestScript(next.scripts?.preRequest || '');
+    setTestScript(next.scripts?.tests || '');
+
+    if (next.grpc_config) {
+      setProtoPath(next.grpc_config.proto_path || '');
+      setGrpcService(next.grpc_config.service || '');
+      setGrpcMethod(next.grpc_config.method || '');
+    } else {
+      setProtoPath('');
+      setGrpcService('');
+      setGrpcMethod('');
+    }
+
+    setResponse(null);
+  }
 
   async function handleSend() {
     setLoading(true);
@@ -272,11 +276,11 @@ function App() {
       });
 
       setResponse(res);
-      toast.success('Requisição concluída!', {
+      toast.success('Request completed!', {
         description: `${method} ${url} - ${res.status} OK`,
       });
     } catch (e) {
-      toast.error('Falha ao enviar requisição');
+      toast.error('Failed to send request');
       setResponse({
         status: 500,
         statusText: 'Internal Error',
@@ -496,7 +500,7 @@ function App() {
                       })
                     }
                     className="save-btn"
-                    title="Salvar alterações"
+                    title="Save changes"
                   >
                     <Save size={16} />
                   </button>
@@ -528,7 +532,7 @@ function App() {
                     setGeneratedCode(code);
                     setShowCodeModal(true);
                   }}
-                  title="Gerar código JavaScript"
+                    title="Generate JavaScript code"
                 >
                   <Code2 size={16} />
                 </button>
@@ -599,7 +603,7 @@ function App() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="cookies-modal-header">
-                      <h3>Gerar Código JavaScript</h3>
+                      <h3>Generate JavaScript Code</h3>
                       <div className="code-targets">
                         <button
                           className={`target-btn ${codeTarget === 'fetch' ? 'active' : ''}`}
@@ -662,7 +666,7 @@ function App() {
                           className="copy-curl-btn"
                           onClick={() => {
                             navigator.clipboard.writeText(generatedCode);
-                            toast.success('Código copiado!');
+                            toast.success('Code copied!');
                           }}
                         >
                           <Copy size={14} />
@@ -1061,7 +1065,7 @@ function App() {
                                   responseBody: response?.body || '{}',
                                 });
                                 setTestScript((prev) => (prev ? prev + '\n' : '') + tests);
-                                toast.success('Testes gerados pela IA!');
+                                toast.success('AI-generated tests ready!');
                               } catch (e) {
                                 toast.error('IA Falhou', { description: String(e) });
                               } finally {
@@ -1074,7 +1078,7 @@ function App() {
                               'Gerando...'
                             ) : (
                               <>
-                                <Sparkles size={14} /> Gerar Testes com IA
+                                <Sparkles size={14} /> Generate AI Tests
                               </>
                             )}
                           </button>
@@ -1277,12 +1281,12 @@ function App() {
                   {activeConfigTab === 'Docs' && (
                     <div className="tab-content body-tab">
                       <div className="scripts-header">
-                        <div className="scripts-title">Documentação (Markdown)</div>
+                        <div className="scripts-title">Documentation (Markdown)</div>
                       </div>
                       <div className="docs-editor-container" style={{ padding: '16px' }}>
                         <textarea
                           className="body-editor docs-editor"
-                          placeholder="Descreva esta requisição usando Markdown..."
+                          placeholder="Describe this request using Markdown..."
                           value={activeRequest?.description || ''}
                           onChange={(e) => {
                             if (activeRequest) {
@@ -1392,7 +1396,7 @@ function App() {
                       // Enter a URL above and click Send to see the result.
                     </div>
                   )}
-                  {loading && <div className="loading-spinner">Processando requisição...</div>}
+                  {loading && <div className="loading-spinner">Processing request...</div>}
 
                   {response && (
                     <>
@@ -1482,7 +1486,7 @@ function App() {
                         <div className="test-results-view">
                           {!response.testsResults || response.testsResults.length === 0 ? (
                             <div className="empty-tests-msg">
-                              Nenhum teste configurado ou executado para esta requisição.
+                              No tests configured or executed for this request.
                             </div>
                           ) : (
                             <div className="test-results-list">
@@ -1509,7 +1513,7 @@ function App() {
                         <div className="test-results-view">
                           {!response.logs || response.logs.length === 0 ? (
                             <div className="empty-tests-msg">
-                              Nenhum log gerado pelos scripts. Use console.log() para depurar.
+                              No logs produced by the scripts yet. Use console.log() to debug.
                             </div>
                           ) : (
                             <div className="console-log-list">

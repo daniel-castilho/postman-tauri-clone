@@ -23,7 +23,7 @@ export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStat
         e.preventDefault();
         if (activeRequest) {
           updateRequest(activeRequest);
-          toast.success('Requisição salva!');
+          toast.success('Request saved!');
         }
       }
       // Ctrl + 1, 2, 3... to switch environment

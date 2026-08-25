@@ -68,9 +68,8 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Governance Linter**: Design-standard validation in real time in the backend (Rust).
 - [x] **Unified Context Switching**: Hybrid interface for Design and Execution.
 
-### Milestones Achieved (Load Testing Engine Epic Complete ✅ - P4)
+### Milestones Achieved (Load Testing Engine Epic Complete ✅ - P4)- [x] **Tokio Engine (`LoadTestService`)**: 1–500 virtual users as lightweight Tokio tasks with ramp-up staggering and per-request timeout (`application/services/load_test_service.rs`).
 
-- [x] **Tokio Engine (`LoadTestService`)**: 1–500 virtual users as lightweight Tokio tasks with ramp-up staggering and per-request timeout (`application/services/load_test_service.rs`).
 - [x] **Lock-Free Aggregation**: Workers push `Sample { duration_ms, status_code, bytes }` into a bounded `mpsc` channel; a single-writer aggregator owns all metrics — zero mutexes on the hot path.
 - [x] **Real-Time Streaming**: `load_test_progress` Tauri events every 200ms carrying RPS (smoothed), active VUs, throughput, status-code breakdown and nearest-rank percentiles (p50/p90/p95/p99 over sorted sample windows).
 - [x] **Graceful Cancellation**: `stop_load_test` flips a `tokio::sync::watch` flag selected upon by workers and aggregator — verified by test to halt in < 100ms.
@@ -85,6 +84,12 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Single Source of Truth**: Frontend consumes generated contracts via the `src/types/ipc.ts` barrel; hand-written duplicate interfaces removed from `workspaceStore.ts`.
 - [x] **IPC Bug Fixes Surfaced By Typing**: `send_request` now returns a named `SendRequestOutput`; complete request literals (missing `name`/`description` fields fixed); environment fallbacks corrected to `variables: []`; runner/load-test payloads include `globals`/`sessionVars`.
 - [x] **CI Type-Drift Guard**: `.github/workflows/ci.yml` regenerates bindings and fails when `src/types/generated/` is stale; also enforces clippy `-D warnings`, `npm run build`, and the architecture boundary grep.
+
+### Milestones Achieved (Technical Debt Retirement ✅ - Items #4, #5, #8)
+
+- [x] **English UI Sweep (debt #5)**: every remaining Portuguese user-facing string translated to English across `App.tsx`, Sidebar, DesignPanel, MockServer, MonitorsPanel, CollectionRunner, WorkspaceSelector, WorkspaceSettings, hooks and the Zustand store — plus the AI prompt strings in `gemini_adapter.rs`. Rule 6 now fully satisfied.
+- [x] **React Hooks Gates (debt #8)**: all nine `react-hooks/*` warnings eliminated by refactoring data-loading effects into guarded loaders / adjust-state-during-render patterns; `set-state-in-effect`, `immutability` and `exhaustive-deps` promoted to **errors** in ESLint.
+- [x] **Binding Drift Guard (debt #4)**: new `export_list_covers_every_ts_annotated_type` test statically parses `domain/models.rs` and fails the build when a `#[ts(export)]` type is not registered for export — dependency-free automation verified against an injected drift probe.
 
 ---
 

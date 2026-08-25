@@ -221,7 +221,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
   addToHistory: (request: HttpRequest) =>
     set((state) => ({
-      history: [request, ...state.history].slice(0, 50), // Limite de 50 itens
+      history: [request, ...state.history].slice(0, 50), // Cap history at 50 items
     })),
 
   clearHistory: () => set({ history: [] }),
@@ -473,7 +473,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       const selectedPath = await open({
         directory: true,
         multiple: false,
-        title: 'Selecione a pasta do Workspace',
+        title: 'Select workspace folder',
       });
 
       if (selectedPath && typeof selectedPath === 'string') {

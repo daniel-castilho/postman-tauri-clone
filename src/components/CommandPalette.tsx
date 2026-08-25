@@ -124,7 +124,7 @@ export const CommandPalette: React.FC<Props> = ({ onClose }) => {
     };
     window.addEventListener('keydown', handleDown);
     return () => window.removeEventListener('keydown', handleDown);
-  }, [filteredItems, selectedIndex]);
+  }, [filteredItems, selectedIndex, onClose]);
 
   return (
     <div className="command-palette-overlay" onClick={onClose}>

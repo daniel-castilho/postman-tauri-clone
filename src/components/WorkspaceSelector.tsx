@@ -8,11 +8,11 @@ export function WorkspaceSelector() {
   return (
     <div className="workspace-selector-container">
       <div className="workspace-selector-card">
-        <h2>Bem-vindo ao Tyny Pulse</h2>
-        <p>Para começar, abra uma pasta para usar como Workspace.</p>
+        <h2>Welcome to Tyny Pulse</h2>
+        <p>To get started, open a folder to use as your workspace.</p>
         <button className="open-workspace-btn" onClick={openWorkspace}>
           <FolderOpen size={20} />
-          <span>Abrir Workspace</span>
+          <span>Open Workspace</span>
         </button>
         {error && (
           <div

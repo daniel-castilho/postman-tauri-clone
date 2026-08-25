@@ -60,14 +60,14 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
           {!report && !running && (
             <div className="runner-prepare">
               <p>
-                Você está prestes a executar <strong>{items.length} itens</strong> sequencialmente.
+                You are about to run <strong>{items.length} items</strong> sequentially.
               </p>
               <div className="runner-env-hint">
-                Ambiente Ativo: <span>{environment?.name || 'Nenhum'}</span>
+                Active Environment: <span>{environment?.name || 'None'}</span>
               </div>
               <button onClick={handleRun} className="start-run-btn">
                 <Play size={16} fill="currentColor" />
-                Iniciar Execução
+                Start Run
               </button>
             </div>
           )}
@@ -127,7 +127,7 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
               </div>
 
               <button onClick={onClose} className="finish-run-btn">
-                Fechar Relatório
+                Close Report
               </button>
             </div>
           )}

@@ -63,7 +63,7 @@ export function Sidebar() {
   const [showGitPanel, setShowGitPanel] = useState(false);
 
   const handleAddCollection = () => {
-    const name = prompt('Nome da Nova Coleção:');
+    const name = prompt('New collection name:');
     if (name) addCollection(name);
   };
 
@@ -80,7 +80,7 @@ export function Sidebar() {
 
   const handleDeleteRequest = (e: React.MouseEvent, reqId: string) => {
     e.stopPropagation();
-    if (confirm('Tem certeza que deseja deletar esta requisição?')) {
+    if (confirm('Are you sure you want to delete this request?')) {
       deleteRequest(reqId);
     }
   };
@@ -94,11 +94,11 @@ export function Sidebar() {
       if (file && !Array.isArray(file)) {
         const content = await invoke<string>('read_file_text', { path: file as string });
         await invoke('import_openapi', { content, workspacePath });
-        toast.success('Coleção importada com sucesso!');
+        toast.success('Collection imported successfully!');
         await loadCollections();
       }
     } catch (e) {
-      toast.error('Erro ao importar', { description: String(e) });
+      toast.error('Import failed', { description: String(e) });
     }
   };
 
@@ -108,7 +108,7 @@ export function Sidebar() {
       setGeneratedDocs(docs);
       setShowDocsModal(true);
     } catch (e) {
-      toast.error('Erro ao gerar documentação', { description: String(e) });
+      toast.error('Failed to generate documentation', { description: String(e) });
     }
   };
 
@@ -275,13 +275,13 @@ export function Sidebar() {
       {sidebarTab === 'Collections' ? (
         <>
           <div className="sidebar-header">
-            <h2>Coleções</h2>
-            <button className="add-btn" title="Nova Coleção" onClick={handleAddCollection}>
+            <h2>Collections</h2>
+            <button className="add-btn" title="New Collection" onClick={handleAddCollection}>
               <PlusCircle size={18} />
             </button>
             <button
               className="add-btn"
-              title="Importar Coleção"
+              title="Import Collection"
               onClick={importCollection}
               style={{ marginLeft: '8px' }}
             >
@@ -316,7 +316,7 @@ export function Sidebar() {
           <div className="sidebar-content">
             {isLoading && <div className="loading-state">Carregando...</div>}
             {!isLoading && collections.length === 0 && (
-              <div className="empty-state">Nenhuma coleção encontrada em {workspacePath}</div>
+              <div className="empty-state">No collections found in {workspacePath}</div>
             )}
             {!isLoading &&
               collections.map((col: Collection) => (
@@ -336,14 +336,14 @@ export function Sidebar() {
                       </button>
                       <button
                         className="add-req-btn"
-                        title="Nova Requisição"
+                        title="New Request"
                         onClick={(e) => handleAddRequest(e, col.id)}
                       >
                         <PlusCircle size={14} />
                       </button>
                       <button
                         className="add-req-btn"
-                        title="Gerar Documentação"
+                        title="Generate Documentation"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleGenerateDocs(col);
@@ -364,7 +364,7 @@ export function Sidebar() {
         <>
           <div className="sidebar-header">
             <h2>History</h2>
-            <button className="add-btn" title="Limpar Histórico" onClick={clearHistory}>
+            <button className="add-btn" title="Clear History" onClick={clearHistory}>
               <Trash2 size={16} />
             </button>
           </div>
@@ -440,7 +440,7 @@ export function Sidebar() {
         <div className="cookies-overlay" onClick={() => setShowDocsModal(false)}>
           <div className="cookies-modal code-snippet-modal" onClick={(e) => e.stopPropagation()}>
             <div className="cookies-modal-header">
-              <h3>Documentação da Coleção</h3>
+              <h3>Collection Documentation</h3>
               <button className="close-cookies-btn" onClick={() => setShowDocsModal(false)}>
                 ×
               </button>
@@ -452,7 +452,7 @@ export function Sidebar() {
                   className="copy-curl-btn"
                   onClick={() => {
                     navigator.clipboard.writeText(generatedDocs);
-                    toast.success('Documentação copiada!');
+                    toast.success('Documentation copied!');
                   }}
                 >
                   <Copy size={14} />

@@ -30,12 +30,11 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      // Consultative gates (AGENTS.md debt item #8): fixing these requires an
-      // architectural pass over data-loading effects across every panel.
-      // Promote to 'error' once effects are refactored into loaders.
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/immutability': 'warn',
-      'react-hooks/exhaustive-deps': 'warn',
+      // Data-loading effects were refactored into guarded loaders
+      // (AGENTS.md debt item #8 resolved); these are hard errors now.
+      'react-hooks/set-state-in-effect': 'error',
+      'react-hooks/immutability': 'error',
+      'react-hooks/exhaustive-deps': 'error',
     },
   },
 );
