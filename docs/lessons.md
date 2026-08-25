@@ -23,7 +23,7 @@ Practical findings from developing, testing, and hardening **Tyny Pulse**. Add t
 
 ## 3. QuickJS JavaScript Sandbox
 
-- **Cross-Compilation C Bindings:** QuickJS relies on underlying C code compilation. When building production binaries for Windows (`x86_64-pc-windows-msvc`) or macOS (`aarch64-apple-darwin`), ensure MSVC or Xcode toolchains are correctly configured in CI workers.
+- **QuickJS C sources do NOT compile under MSVC:** `quick-js`/`libquickjs-sys` build QuickJS C code that uses GCC extensions (`__attribute__((packed))` etc.), which `cl.exe` rejects (`cutils.h: syntax error: identifier 'packed_u64'`). Release builds for Windows must use the **GNU host toolchain** (`stable-x86_64-pc-windows-gnu`) — switching only the target is not enough, because `tauri-build`'s embed-resource then emits `resource.lib` in COFF/MSVC format and MinGW's `ld` rejects it ("file format not recognized"). macOS release builds use the `universal-apple-darwin` target (covers both `aarch64` and `x86_64`). See `.github/workflows/release.yml`.
 - **Memory Limits in Sandbox:** Limit memory allocation for QuickJS runtime instances to prevent runaway user scripts from consuming desktop system RAM.
 
 ---
@@ -39,3 +39,14 @@ _(This section is updated as new debugging lessons and infrastructure findings e
 - **Tauri v2 requires the WebKitGTK 4.1 stack on Ubuntu CI runners:** installing the Tauri v1-era `libwebkit2gtk-4.0-dev` makes `javascriptcore-rs-sys` / `soup3-sys` build scripts fail with "The file `<lib>.pc` needs to be installed and PKG_CONFIG_PATH..." errors. The correct set (Ubuntu >= 22.04) is `libwebkit2gtk-4.1-dev`, `libsoup-3.0-dev`, `libjavascriptcoregtk-4.1-dev`, `libgtk-3-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`, `pkg-config`. Sources: tauri-apps/tauri-action#720, tauri-apps/tauri#3701.
 - **Frontend bundle must exist before any Rust build in CI:** with the default `custom-protocol` feature, `tauri::generate_context!` reads `frontendDist` (`../dist`) at compile time via a proc macro that panics when the directory is missing. Always order workflow steps as `npm ci` → `npm run build` → `cargo clippy/test`.
 - **Diagnose from the failed log before touching anything:** `gh run view <id> --log-failed` filtered for `error|##[error]` pinpoints the failing build script in seconds; guessing produces wasted CI round-trips of 3+ minutes each.
+- **The `secrets` context is NOT allowed in step-level `if:` conditionals:** a workflow containing `if: ${{ secrets.X != '' }}` fails validation at startup — runs fail in ~0s with "This run likely failed because of a workflow file issue", and worse, **every trigger silently stops registering** (even `on: pull_request` never appears as a PR check). Bridge the flag through job-level `env`, where `secrets` IS allowed:
+  ```yaml
+  jobs:
+    coverage:
+      env:
+        HAS_CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN != '' }}
+      steps:
+        - if: env.HAS_CODECOV_TOKEN == 'true'
+          uses: codecov/codecov-action@v5
+  ```
+- **Validate workflow files locally with `actionlint` before pushing:** it reproduces GitHub's exact schema/context validation (e.g. the `secrets`-in-`if` error above) in one command; a 0-second failed Actions run almost always means a workflow file issue, not a test failure.
