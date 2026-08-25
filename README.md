@@ -36,6 +36,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 
 - ⚡ **Rust-Powered Performance:** Ultra-low memory footprint (~50-80 MB RAM) with near-instant application startup times.
 - 📂 **Local-First & Git-Native:** Store workspaces, collections, and environments in readable, version-controlled JSON files on your local disk.
+- 👁️ **Real-Time Workspace Sync:** External edits to workspace JSON files are detected by a native file watcher and reflected in the UI automatically — no manual reload.
 - 📑 **Multi-Protocol Hub:** Unified support for REST, GraphQL, WebSockets, and gRPC mock testing.
 - 📜 **SpecHub (API Design):** Author, preview, and validate OpenAPI 3.0/3.1 specifications with real-time governance linting.
 - 🔐 **Military-Grade Security:** Local secret storage encrypted at rest with AES-256-GCM.
@@ -119,6 +120,7 @@ Ensure you have the following installed on your development environment:
 ```bash
 git clone https://github.com/daniel-castilho/tyny-pulse.git
 cd tyny-pulse
+git config core.hooksPath .githooks   # enables the pre-commit formatter
 ```
 
 ### 2. Install dependencies
@@ -347,13 +349,12 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 
 ## Documentation & License
 
-| Document                                             | Purpose                                                            |
-| :--------------------------------------------------- | :----------------------------------------------------------------- |
-| [`README.md`](README.md)                             | Project overview, architecture, setup, and scripting guide         |
-| [`AGENTS.md`](AGENTS.md)                             | Guidelines for AI agents and human contributors                    |
-| [`docs/progress.md`](docs/progress.md)               | Feature implementation roadmap & architectural milestones          |
-| [`rename_to_tyny_pulse.sh`](rename_to_tyny_pulse.sh) | Automated script to rename package references across the codebase  |
-| [`LICENSE`](LICENSE)                                 | MIT License — full legal text of the project's open-source license |
+| Document                               | Purpose                                                            |
+| :------------------------------------- | :----------------------------------------------------------------- |
+| [`README.md`](README.md)               | Project overview, architecture, setup, and scripting guide         |
+| [`AGENTS.md`](AGENTS.md)               | Guidelines for AI agents and human contributors                    |
+| [`docs/progress.md`](docs/progress.md) | Feature implementation roadmap & architectural milestones          |
+| [`LICENSE`](LICENSE)                   | MIT License — full legal text of the project's open-source license |
 
 Tyny Pulse is released under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
 

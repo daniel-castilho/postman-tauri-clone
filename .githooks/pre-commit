@@ -1,0 +1,11 @@
+#!/bin/sh
+# Formats staged frontend/doc files before every commit.
+# Enable once per clone with: git config core.hooksPath .githooks
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|mjs|json|css|md)$')
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+echo "pre-commit: formatting staged files..."
+npx prettier --write $STAGED
+# Re-stage any file the formatter touched so the commit ships clean.
+git add $STAGED

@@ -13,3 +13,4 @@ pub mod security;
 pub mod vault;
 pub mod reporting;
 pub mod git;
+pub mod watcher;

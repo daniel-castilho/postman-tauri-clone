@@ -34,6 +34,9 @@ use infrastructure::docs::markdown_adapter::MarkdownDocsAdapter;
 use application::commands::docs_tasks::DocsUseCase;
 use application::commands::load_test::{LoadTestState, LoadTestUseCase};
 use application::services::load_test_service::LoadTestService;
+use application::ports::workspace_watcher::WorkspaceWatcherPort;
+use infrastructure::watcher::notify_adapter::NotifyWorkspaceWatcher;
+use application::commands::watch_tasks::WorkspaceWatchState;
 use application::commands::monitor_tasks::MonitorUseCase;
 use application::commands::sync_tasks::SyncUseCase;
 use infrastructure::grpc::mock_adapter::MockGrpcClientAdapter;
@@ -80,6 +83,8 @@ fn main() {
         http_client.clone(),
         variable_resolver.clone(),
     ));
+    let workspace_watcher: Arc<dyn WorkspaceWatcherPort> =
+        Arc::new(NotifyWorkspaceWatcher::new());
     let monitor_usecase = MonitorUseCase::new(http_client.clone());
     let sync_usecase = SyncUseCase::new();
 
@@ -108,6 +113,8 @@ fn main() {
         .manage(docs_usecase)
         .manage(load_test_usecase)
         .manage(load_test_service)
+        .manage(workspace_watcher)
+        .manage(WorkspaceWatchState::new())
         .manage(LoadTestState::new())
         .manage(monitor_usecase)
         .manage(sync_usecase)
@@ -134,6 +141,8 @@ fn main() {
             application::commands::load_test::stop_load_test,
             application::commands::load_test::get_load_test_status,
             application::commands::report_tasks::render_run_report,
+            application::commands::watch_tasks::start_workspace_watch,
+            application::commands::watch_tasks::stop_workspace_watch,
             presentation::commands::start_monitor,
             presentation::commands::stop_monitor,
             presentation::commands::invite_user,

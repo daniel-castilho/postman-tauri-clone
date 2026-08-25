@@ -555,3 +555,12 @@ pub enum RunReportFormat {
     Html,
     Markdown,
 }
+
+/// One debounced batch of changed workspace file paths, emitted as the
+/// `workspace-changed` event payload.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceChange {
+    pub paths: Vec<String>,
+}

@@ -411,6 +411,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         await get().loadCollections();
         await get().loadEnvironments();
         await get().loadGlobals();
+
+        // Arm the real-time watcher for this folder (debt #3).
+        void invoke('start_workspace_watch', { workspacePath: selectedPath }).catch(
+          () => undefined,
+        );
       }
     } catch (error) {
       set({ error: JSON.stringify(error) });
@@ -629,4 +634,16 @@ listen<SyncChange>('sync-change', (event) => {
     const newEnvs = store.environments.map((e) => (e.id === updatedEnv.id ? updatedEnv : e));
     useWorkspaceStore.setState({ environments: newEnvs });
   }
+});
+
+// Real-time workspace watching (debt #3): the backend debounces filesystem
+// events and notifies us here; affected surfaces are reloaded quietly while
+// local UI state (open tabs, drafts) stays untouched.
+listen<{ paths: string[] }>('workspace-changed', () => {
+  const state = useWorkspaceStore.getState();
+  if (!state.workspacePath || state.isLoading) return;
+  void state.loadCollections();
+  void state.loadEnvironments();
+  void state.loadGlobals();
+  void state.loadDesigns();
 });

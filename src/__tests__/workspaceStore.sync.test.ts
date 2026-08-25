@@ -182,7 +182,8 @@ describe('useWorkspaceStore (real-time sync listener)', () => {
   // registered handler instead of resetting modules (which would fork state).
   function capturedSyncHandler(): ((event: { payload: unknown }) => void) | undefined {
     const calls = vi.mocked(listen).mock.calls;
-    return calls.length > 0 ? (calls[calls.length - 1][1] as typeof syncHandler) : undefined;
+    const syncCall = [...calls].reverse().find(([eventName]) => eventName === 'sync-change');
+    return syncCall ? (syncCall[1] as typeof syncHandler) : undefined;
   }
   let syncHandler: ((event: { payload: unknown }) => void) | undefined;
 

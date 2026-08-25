@@ -425,10 +425,15 @@ describe('useWorkspaceStore (workspace lifecycle)', () => {
   it('openWorkspace wires the folder and loads every workspace surface', async () => {
     const state = await freshStore();
     vi.mocked(open).mockResolvedValue('/chosen/path');
-    vi.mocked(invoke)
-      .mockResolvedValueOnce([]) // load_collections
-      .mockResolvedValueOnce([]) // load_environments
-      .mockResolvedValueOnce({ variables: {} }); // load_globals
+    // The watcher arm call is fire-and-forget and must not disturb the
+    // three surface-loading IPC calls above it.
+    vi.mocked(invoke).mockImplementation(async (command: string) => {
+      if (command === 'load_collections') return [];
+      if (command === 'load_environments') return [];
+      if (command === 'load_globals') return { variables: {} };
+      if (command === 'start_workspace_watch') return undefined;
+      return undefined;
+    });
 
     await state.openWorkspace();
 
@@ -439,6 +444,7 @@ describe('useWorkspaceStore (workspace lifecycle)', () => {
       'load_collections',
       'load_environments',
       'load_globals',
+      'start_workspace_watch',
     ]);
   });
 

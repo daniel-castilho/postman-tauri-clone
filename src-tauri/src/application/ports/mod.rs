@@ -11,3 +11,4 @@ pub mod import_port;
 pub mod docs_generator;
 pub mod design_repository;
 pub mod git_repository;
+pub mod workspace_watcher;

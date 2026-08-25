@@ -8,6 +8,7 @@ pub mod import_tasks;
 pub mod docs_tasks;
 pub mod load_test;
 pub mod report_tasks;
+pub mod watch_tasks;
 pub mod design_tasks;
 pub mod monitor_tasks;
 pub mod sync_tasks;

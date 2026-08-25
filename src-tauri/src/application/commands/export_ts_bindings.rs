@@ -27,7 +27,7 @@ mod tests {
         LoadTestConfig, LoadTestConfigDto, LoadTestProgressEventDto, LoadTestReport, MemberRole,
         MockRule, MockServerStatus, MonitorDefinition,
         MonitorReport, RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput,
-        StatusCodeCountDto, SyncChange,
+        StatusCodeCountDto, SyncChange, WorkspaceChange,
         RunReportFormat,
         TestResult, Url, VariableType, WorkspaceBundle, WorkspaceMember,
     };
@@ -115,6 +115,9 @@ mod tests {
 
         // Run report rendering (shared by GUI and headless CLI)
         RunReportFormat::export_all(&cfg).unwrap();
+
+        // Real-time workspace watching (debt #3; also emitted as the `workspace-changed` event payload)
+        WorkspaceChange::export_all(&cfg).unwrap();
 
         // IPC error envelope
         AppError::export_all(&cfg).unwrap();
