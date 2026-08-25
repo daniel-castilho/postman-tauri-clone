@@ -25,3 +25,6 @@ coverage/
 *.njsproj
 *.sln
 *.sw?
+
+# Windows NTFS metadata artifacts
+*:Zone.Identifier
