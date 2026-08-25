@@ -41,6 +41,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 - 🚀 **Built-in Load Testing:** Multi-threaded stress testing engine powered by Rust Tokio.
 - 🔄 **Resilient Offline Sync:** Background synchronization queue designed for unstable network conditions.
 - 🧬 **Zero Type-Drift IPC:** Every Tauri command payload is derived from the Rust domain models; TypeScript bindings are generated into `src/types/generated` by `cargo test` and a CI job fails the build if they ever drift.
+- 🖥️ **Headless CLI:** Run collections from the terminal (`tyny-pulse run collection.json`) with `pm.*` assertions, JSON/JUnit reports, and pipeline-friendly exit codes — see [CLI Usage](#cli-usage).
 - 💎 **Elite UI/UX:** Glassmorphic interface with Command Palette (`Ctrl+P` / `Cmd+P`), Framer Motion transitions, and dynamic Dark/Light themes.
 
 ---
@@ -126,6 +127,36 @@ npm run tauri dev
 npm run tauri build
 ```
 The compiled, native installers (`.exe`, `.msi`, `.dmg`, `.AppImage`, `.deb`) will be generated inside `src-tauri/target/release/bundle/`.
+
+---
+
+## CLI Usage
+
+The same binary runs collections headlessly — no window, no GUI dependencies. Perfect for CI/CD pipelines:
+
+```bash
+# Build once (or use the desktop installer's bundled binary)
+cargo build --release --manifest-path src-tauri/Cargo.toml
+
+BIN=src-tauri/target/release/tyny-pulse
+
+$BIN run collections/smoke.json \
+    --env environments/staging.json \
+    --var baseUrl=https://staging.api.example.com \
+    --report report.junit
+```
+
+| Flag | Purpose |
+| :--- | :--- |
+| `--env <path>` | Load an environment JSON file |
+| `--globals <path>` | Load global variables JSON |
+| `--var <key=value>` | Override/inject an environment variable (repeatable) |
+| `--report <path>` | Write a report file (`.json` or `.xml`/`.junit` decides the writer) |
+| `--format json\|junit` | Force the writer when the extension is unknown |
+
+Exit codes: `0` all tests passed · `1` test failures · `2` usage/input error · `3` domain error.
+
+A ready-to-copy GitHub Actions workflow lives in [`docs/examples/github-actions-collection-run.yml`](docs/examples/github-actions-collection-run.yml).
 
 ---
 
@@ -217,8 +248,8 @@ pm.test("Validate User Payload", () => {
 - [x] AES-256 encrypted local vaults
 - [x] SpecHub OpenAPI 3.0 / 3.1 real-time linter
 - [x] Zero Type-Drift IPC: TypeScript bindings auto-generated from Rust domain models via `ts-rs`, enforced by CI
+- [x] Headless CLI runner (`tyny-pulse run`) with JSON/JUnit reports and CI exit codes
 - [ ] Collection Runner with exportable HTML/Markdown reports
-- [ ] CLI runner (`tyny-cli`) for headless CI/CD pipelines
 - [ ] Cloud sync opt-in via `tyny.ca` relay
 
 ---

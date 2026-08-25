@@ -1,0 +1,43 @@
+# Example: run Tyny Pulse collections in CI with JUnit reporting.
+#
+# Copy this file into your repository as .github/workflows/api-tests.yml
+# and commit your collection JSON alongside your code.
+#
+# The Tyny Pulse binary exits non-zero when any test fails, so the job
+# fails automatically. The generated report.xml uploads as a workflow
+# artifact (and can be consumed by any JUnit-compatible reporter).
+
+name: API Tests (Tyny Pulse)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  run-collection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Tyny Pulse CLI
+        working-directory: path/to/tyny-pulse/src-tauri
+        run: cargo build --release
+
+      - name: Run collection
+        run: |
+          src-tauri/target/release/tyny-pulse run \
+            collections/smoke.json \
+            --env environments/staging.json \
+            --var baseUrl=https://staging.api.example.com \
+            --report report.junit
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyny-pulse-report
+          path: report.junit

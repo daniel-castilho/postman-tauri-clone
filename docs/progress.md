@@ -2,7 +2,17 @@
 
 This document is the global state map of the project. Any AI agent taking over the project must consult this file (together with `AGENTS.md`) to understand the current development phase.
 
-## Current Stage: **Phase 18 (Headless Automation & CLI)** — In Progress 🚀
+## Current Stage: **Phase 19 (Advanced Scripting & npm Integration)** — Next Focus
+
+---
+
+### Milestones Achieved (Phase 18 Complete ✅ - Headless Automation & CLI)
+- [x] **Headless CLI Mode**: `tyny-pulse run <collection.json>` executes collections from the terminal without booting the desktop shell (`presentation/cli.rs` branches before the Tauri builder).
+- [x] **JSON/JUnit Reporting**: Machine-readable reports via `infrastructure/reporting/` (JSON metadata envelope + hand-rolled, XML-escaped JUnit writer) — no new dependencies.
+- [x] **Pipeline-Friendly Exit Codes**: 0 = all tests passed, 1 = test failures, 2 = usage/input error, 3 = domain error.
+- [x] **CLI Ergonomics**: `--env`, `--globals`, repeatable `--var key=value` overrides, report format inference from file extension.
+- [x] **GitHub Actions Integration**: Ready-to-copy workflow template in `docs/examples/github-actions-collection-run.yml`; README documents the full CLI contract.
+- [x] **E2E Verified**: Local mock server run validated nested folder traversal, `pm.*` assertions, JUnit output and all three exit code paths.
 
 ---
 
@@ -40,12 +50,9 @@ This document is the global state map of the project. Any AI agent taking over t
 
 ## 🚀 Next Activities (Towards the Postman Killer)
 
-### Phase 18: Headless Automation (The CLI) (NEXT FOCUS)
-- [ ] **Tauri CLI Commands**: Add subcommands to the binary for running collections from the terminal.
-- [ ] **JSON/JUnit Reporting**: Generate test reports for CI/CD pipelines.
-- [ ] **GitHub Actions Integration**: Official automation template.
+### Phase 18: Headless Automation (The CLI) ✅ (Completed — see milestones above)
 
-### Phase 19: Advanced Scripting & npm Integration
+### Phase 19: Advanced Scripting & npm Integration (NEXT FOCUS)
 - [ ] **Dynamic Dependency Resolver**: Import npm packages inside scripts (expanded QuickJS sandbox).
 - [ ] **In-App Package Manager**: Visual management of external libraries.
 
@@ -68,4 +75,4 @@ This document is the global state map of the project. Any AI agent taking over t
 * **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
 
 ---
-_Last Updated: August 2026. Zero Type-Drift epic completed: end-to-end type safety across the Tauri IPC boundary. Focus now on terminal automation (CLI)._
+_Last Updated: August 2026. Phase 18 (Headless Automation & CLI) completed: `tyny-pulse run` with JSON/JUnit reporting and CI exit codes. Next focus: Phase 19 (Advanced Scripting & npm Integration)._

@@ -38,6 +38,13 @@ use application::commands::sync_tasks::SyncUseCase;
 use infrastructure::grpc::mock_adapter::MockGrpcClientAdapter;
 
 fn main() {
+    // Headless mode: recognized CLI subcommands run without booting the
+    // desktop shell, reusing the same application layer and adapters.
+    let argv: Vec<String> = std::env::args().collect();
+    if let Some(invocation) = presentation::cli::headless_command(&argv) {
+        std::process::exit(presentation::cli::invoke(invocation));
+    }
+
     let http_client = Arc::new(ReqwestHttpClientAdapter::new());
     let variable_resolver = Arc::new(RealVariableResolver::new());
     let script_runner = Arc::new(QuickJsScriptRunner::new());
