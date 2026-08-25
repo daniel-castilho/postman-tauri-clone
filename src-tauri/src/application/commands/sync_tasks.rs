@@ -40,15 +40,15 @@ impl SyncUseCase {
     }
 
     pub async fn push_change(&self, app_handle: tauri::AppHandle, resource_type: String, resource_id: String, operation: String, mut data: String) {
-        // Lógica de Segurança p/ Secrets
+        // Security logic for secrets
         if resource_type == "Environment" && operation == "Update" {
             if let Ok(mut env) = serde_json::from_str::<Environment>(&data) {
                 for var in &mut env.variables {
-                    // Nunca envia o valor local (current) p/ a nuvem/broadcast
+                    // Never send the local (current) value to the cloud/broadcast
                     var.current_value = String::new();
-                    
-                    // Se for Secret, talvez queira omitir o initial tb se for ultra-safe
-                    // No Postman oficial o initial_value é compartilhado.
+
+                    // If it is a secret, you may also want to omit the initial value to be extra safe.
+                    // In official Postman, initial_value is shared.
                 }
                 data = serde_json::to_string(&env).unwrap_or(data);
             }
@@ -63,10 +63,16 @@ impl SyncUseCase {
             timestamp: Utc::now().to_rfc3339(),
         };
 
-        // Cache local (simulando "cloud store")
+        // Local cache (simulating a "cloud store")
         self.last_changes.lock().await.push(change.clone());
 
-        // Broadcast local para outras abas ou simulação de peer-check
+        // Local broadcast to other tabs or peer-check simulation
         let _ = app_handle.emit("sync-change", change);
+    }
+}
+
+impl Default for SyncUseCase {
+    fn default() -> Self {
+        Self::new()
     }
 }

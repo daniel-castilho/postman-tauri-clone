@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Play, X, CheckCircle2, XCircle, Loader2, BarChart3 } from "lucide-react";
+import { useWorkspaceStore } from "../store/workspaceStore";
+import type { CollectionItem, CollectionRunReport, Environment, RequestRunResult, TestResult } from "../types/ipc";
 import "./CollectionRunner.css";
 
 interface CollectionRunnerProps {
-  items: any[];
-  environment: any;
+  items: CollectionItem[];
+  environment: Environment | null;
   onClose: () => void;
 }
 
 export function CollectionRunner({ items, environment, onClose }: CollectionRunnerProps) {
+  const globals = useWorkspaceStore((s) => s.globals);
+  const sessionVariables = useWorkspaceStore((s) => s.sessionVariables);
   const [running, setRunning] = useState(false);
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<CollectionRunReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleRun = async () => {
@@ -19,9 +23,11 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
     setReport(null);
     setError(null);
     try {
-      const result = await invoke<any>("run_collection", {
+      const result = await invoke<CollectionRunReport>("run_collection", {
         items,
-        environment: environment || { id: "default", name: "No Env", variables: {} }
+        environment: environment || { id: "default", name: "No Env", variables: [] },
+        globals,
+        sessionVars: sessionVariables
       });
       setReport(result);
     } catch (e: any) {
@@ -89,7 +95,7 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
               </div>
 
               <div className="report-details">
-                {report.results.map((res: any, i: number) => (
+                {report.results.map((res: RequestRunResult, i: number) => (
                   <div key={i} className="report-item">
                     <div className="report-item-header">
                       <span className="report-item-name">{res.requestName}</span>
@@ -99,7 +105,7 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
                       </div>
                     </div>
                     <div className="report-item-tests">
-                      {res.tests.map((t: any, ti: number) => (
+                      {res.tests.map((t: TestResult, ti: number) => (
                         <div key={ti} className={`test-row ${t.passed ? 'passed' : 'failed'}`}>
                           {t.passed ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                           <span>{t.name}</span>

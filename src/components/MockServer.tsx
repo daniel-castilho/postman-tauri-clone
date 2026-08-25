@@ -2,21 +2,7 @@ import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Play, Square, Plus, Trash2, Power, Globe } from "lucide-react";
 import { toast } from "sonner";
-
-interface MockRule {
-  id: string;
-  path: string;
-  method: string;
-  status: number;
-  headers: { key: string; value: string; enabled: boolean }[];
-  body: string;
-}
-
-interface MockServerStatus {
-  is_running: boolean;
-  port: number;
-  active_rules: number;
-}
+import type { HttpMethod, MockRule, MockServerStatus } from "../types/ipc";
 
 export const MockServer: React.FC = () => {
   const [rules, setRules] = useState<MockRule[]>([
@@ -117,11 +103,11 @@ export const MockServer: React.FC = () => {
           {rules.map((rule, idx) => (
             <div key={rule.id} className="mock-rule-card">
               <div className="rule-top">
-                <select 
-                  value={rule.method} 
+                <select
+                  value={rule.method as string}
                   onChange={(e) => {
                     const newRules = [...rules];
-                    newRules[idx].method = e.target.value;
+                    newRules[idx].method = e.target.value as HttpMethod;
                     setRules(newRules);
                   }}
                   className="rule-method"

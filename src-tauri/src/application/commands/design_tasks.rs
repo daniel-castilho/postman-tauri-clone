@@ -1,7 +1,6 @@
 use crate::application::ports::design_repository::DesignRepositoryPort;
 use crate::domain::models::{DesignSpec, LintIssue, LintSeverity};
 use crate::domain::errors::DomainError;
-use std::sync::Arc;
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -43,10 +42,10 @@ impl DesignUseCase {
     pub fn lint_spec(&self, content: &str) -> Vec<LintIssue> {
         let mut issues = Vec::new();
         
-        // Simulação de linting para MVP (Padrão Elite API)
+        // Linting simulation for the MVP (Elite API standard)
         if content.contains("GET") && !content.contains("responses") {
             issues.push(LintIssue {
-                line: 10, // Simulado
+                line: 10, // Simulated
                 message: "Every method should have at least one response defined.".into(),
                 severity: LintSeverity::Error,
                 path: "paths.*.get.responses".into(),

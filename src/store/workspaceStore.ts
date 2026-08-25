@@ -4,54 +4,26 @@ import { invoke } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { listen } from '@tauri-apps/api/event';
 
-export interface Collection {
-  id: string;
-  name: string;
-  description?: string;
-  items: CollectionItem[];
-  variables: Record<string, string>;
-}
+// IPC contract types are auto-generated from the Rust domain models.
+// Never redeclare them by hand here (Zero Type-Drift epic).
+import type {
+  Collection,
+  CollectionItem,
+  DesignSpec,
+  Environment,
+  GlobalVariables,
+  HttpRequest,
+  LintIssue,
+} from '../types/ipc';
 
-export type CollectionItem =
-  | { Request: HttpRequest }
-  | { Folder: { name: string; description?: string; items: CollectionItem[] } };
-
-export interface TestResult {
-  name: string;
-  passed: boolean;
-  error?: string;
-}
-
-export interface EnvironmentVariable {
-  key: String;
-  initial_value: string;
-  current_value: string;
-  var_type: 'Public' | 'Secret';
-  enabled: boolean;
-}
-
-export interface Environment {
-  id: string;
-  name: string;
-  variables: EnvironmentVariable[];
-}
-
-export interface HttpRequest {
-  id: string;
-  name: string;
-  description?: string;
-  method: string;
-  url: string;
-  headers: any[];
-  body: any | null;
-  auth: any | null;
-  variables: Record<string, string>;
-  scripts: {
-    preRequest: string;
-    tests: string;
-  };
-  grpc_config?: any;
-}
+export type {
+  Collection,
+  CollectionItem,
+  DesignSpec,
+  Environment,
+  HttpRequest,
+  LintIssue,
+} from '../types/ipc';
 
 interface WorkspaceState {
   workspacePath: string;
@@ -116,24 +88,9 @@ interface WorkspaceState {
   setSidebarMode: (mode: 'Collections' | 'Designs' | 'History') => void;
 }
 
-export interface DesignSpec {
-  id: string;
-  name: string;
-  content: string;
-  format: string;
-  version: string;
-  last_modified: string;
-}
-
-export interface LintIssue {
-  line: number;
-  message: string;
-  severity: 'Error' | 'Warning' | 'Info';
-  path: string;
-}
 
 export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => ({
-  workspacePath: '', // O usuário definirá via UI ou FilePicker nativo do desktop
+  workspacePath: '', // The user will set this via UI or the native desktop FilePicker
   activeRequest: null,
   sidebarMode: 'Collections',
   setSidebarMode: (mode: any) => set({ sidebarMode: mode }),
@@ -168,10 +125,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     if (syncQueue.length === 0) return;
 
     try {
-      // Tenta processar toda a fila
+      // Try to process the whole queue
       for (const change of [...syncQueue]) {
          await invoke('sync_resource_change', change);
-         // Remove da fila se teve sucesso
+         // Remove from the queue on success
          set((state: any) => ({ syncQueue: state.syncQueue.filter((c: any) => c !== change) }));
       }
       set({ isOnline: true });
@@ -249,7 +206,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     }));
     await get().saveEnvironments();
     
-    // NOVO: Usa a fila robusta p/ Sync
+    // NEW: use the robust sync queue
     get().addToSyncQueue({
       resourceType: 'Environment',
       resourceId: env.id,
@@ -269,7 +226,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     let targetCollection: Collection | null = null;
     let newCollections = [...collections];
 
-    // Helper recursivo para buscar e atualizar o request
+    // Recursive helper to find and update the request
     const updateInItems = (items: CollectionItem[]): boolean => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -291,12 +248,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     }
 
     if (targetCollection) {
-      // Atualiza estado local primeiro pra ser otimista
+      // Update local state first to be optimistic
       set({ collections: newCollections, activeRequest: updatedRequest });
-      // Grava no disco
+      // Persist to disk
       await saveCollection(targetCollection);
 
-      // NOVO: Usa a fila robusta p/ Sync
+      // NEW: use the robust sync queue
       get().addToSyncQueue({
         resourceType: 'Request',
         resourceId: updatedRequest.id,
@@ -310,6 +267,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     const newCollection: Collection = {
       id: `col_${Date.now()}`,
       name: name,
+      description: null,
       items: [],
       variables: {}
     };
@@ -342,7 +300,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     let originalReq: HttpRequest | null = null;
     let targetCollection: Collection | null = null;
 
-    // Helper para achar e clonar
+    // Helper to find and clone
     const findAndClone = (items: CollectionItem[]): CollectionItem[] => {
       const newItems: CollectionItem[] = [];
       for (const item of items) {
@@ -409,6 +367,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     const defaultRequest: HttpRequest = {
       id: `req_${Date.now()}`,
       name: "New Request",
+      description: null,
       method: "GET",
       url: "https://api.example.com",
       headers: [],
@@ -418,7 +377,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       scripts: {
         preRequest: "",
         tests: ""
-      }
+      },
+      grpc_config: null
     };
 
     const updatedCollection = {
@@ -529,7 +489,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     set({ isLoading: true, error: null });
     try {
       await invoke('save_collection', { workspacePath, collection });
-      await loadCollections(); // Reload para refletir as mudanças do disco
+      await loadCollections(); // Reload to reflect disk changes
     } catch (error: any) {
       set({ error: JSON.stringify(error), isLoading: false });
     }
@@ -663,7 +623,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
   }
 }));
 
-// Listener Global para Sincronização em Tempo Real
+// Global listener for real-time synchronization
 listen('sync-change', (event: any) => {
   const change = event.payload;
   const store = useWorkspaceStore.getState();
@@ -673,13 +633,13 @@ listen('sync-change', (event: any) => {
   if (change.resource_type === 'Request' && change.operation === 'Update') {
     const updatedReq = JSON.parse(change.data);
     
-    // Evita loop se for a mesma mudança que nós enviamos (melhoria futura: IDs de cliente)
+    // Avoid a loop if this is the same change we sent (future improvement: client IDs)
     if (store.activeRequest?.id === updatedReq.id) {
-       // Se for o mesmo que estamos editando, atualizamos a UI mas com cuidado
+       // If it is the one being edited, update the UI carefully
        // useWorkspaceStore.setState({ activeRequest: updatedReq });
     }
 
-    // Atualiza na árvore de coleções
+    // Update the collection tree
     const newCollections = [...store.collections];
     let found = false;
 
@@ -709,7 +669,7 @@ listen('sync-change', (event: any) => {
     const existingEnv = store.environments.find((e: any) => e.id === updatedEnv.id);
     
     if (existingEnv) {
-       // Mescla mantendo os valores locais (current_value)
+       // Merge while keeping local values (current_value)
        updatedEnv.variables = updatedEnv.variables.map((v: any) => {
           const localVar = existingEnv.variables.find((lv: any) => lv.key === v.key);
           return { 

@@ -1,0 +1,73 @@
+name: 'CI — Type Drift Guard'
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: install dependencies (ubuntu only)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install frontend dependencies
+        run: npm ci
+
+      - name: rust lint (zero warnings policy)
+        working-directory: src-tauri
+        run: cargo clippy -- -D warnings
+
+      - name: rust unit tests + regenerate TypeScript bindings
+        working-directory: src-tauri
+        run: cargo test
+
+      - name: type drift guard (generated bindings must be up to date)
+        run: |
+          if [ -z "$(git status --porcelain src/types/generated)" ]; then
+            echo "OK: TypeScript bindings are in sync with the Rust domain models."
+          else
+            echo "::error::Type drift detected! The Rust domain models changed but"
+            echo "::error::src/types/generated/ was not regenerated."
+            echo "::error::Fix locally with: cd src-tauri && cargo test export_ts_bindings"
+            git status --porcelain src/types/generated
+            git diff -- src/types/generated
+            exit 1
+          fi
+
+      - name: frontend typecheck & production build
+        run: npm run build
+
+      - name: architecture boundary check (domain/ports stay pure)
+        run: |
+          if grep -rEn "use crate::infrastructure" src-tauri/src/domain src-tauri/src/application/ports; then
+            echo "::error::Architecture violation: domain or application ports import infrastructure."
+            exit 1
+          fi
+          echo "OK: no infrastructure imports inside domain or application ports."

@@ -59,7 +59,7 @@ pub fn import_collection_by_path(
     let mut collection: Collection = serde_json::from_str(&content)
         .map_err(|e| AppError::persistence_error(format!("Invalid collection format: {}", e)))?;
 
-    // Garante ID único se houver conflito ou apenas para segurança
+    // Guarantee a unique ID to avoid conflicts (defensive measure)
     collection.id = format!("col_imp_{}", uuid::Uuid::new_v4());
 
     use_case.save_collection(&workspace_path, collection.clone()).map_err(AppError::from)?;
@@ -75,10 +75,12 @@ pub fn export_workspace(
 ) -> Result<(), AppError> {
     let collections = use_case.load_collections(&workspace_path).map_err(AppError::from)?;
     let environments = use_case.load_environments(&workspace_path).map_err(AppError::from)?;
-    
+    let globals = use_case.load_globals(&workspace_path).ok();
+
     let bundle = crate::domain::models::WorkspaceBundle {
         collections,
         environments,
+        globals,
         export_date: chrono::Utc::now().to_rfc3339(),
         app_version: "0.1.0".to_string(),
     };

@@ -24,7 +24,8 @@ pub enum DomainError {
     SerializationError(String),
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, ts_rs::TS)]
+#[ts(export)]
 pub struct AppError {
     pub code: String,
     pub message: String,

@@ -2,13 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Users, UserPlus, Shield, User, Mail, X, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { MemberRole, WorkspaceMember } from '../types/ipc';
 import './WorkspaceSettings.css';
-
-interface WorkspaceMember {
-  user_id: string;
-  email: string;
-  role: 'Admin' | 'Viewer' | 'Editor';
-}
 
 interface Props {
   onClose: () => void;
@@ -17,7 +12,7 @@ interface Props {
 export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Viewer' | 'Editor' | 'Admin'>('Viewer');
+  const [inviteRole, setInviteRole] = useState<MemberRole>('Viewer');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

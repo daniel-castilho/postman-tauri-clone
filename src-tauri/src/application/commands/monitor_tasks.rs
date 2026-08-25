@@ -24,7 +24,7 @@ impl MonitorUseCase {
         let monitor_id = monitor.id.clone();
         let mut active = self.active_monitors.lock().await;
         
-        // Se já existe, cancela o anterior
+        // If one already exists, cancel it
         if let Some(handle) = active.remove(&monitor_id) {
             handle.abort();
         }
@@ -34,7 +34,7 @@ impl MonitorUseCase {
 
         let handle = tokio::spawn(async move {
             loop {
-                // Prepara uma request simples de GET para o monitor
+                // Prepare a simple GET request for the monitor
                 let request = HttpRequest {
                     id: RequestId(format!("mon_{}", mon.id)),
                     name: format!("Monitor: {}", mon.name),
@@ -70,10 +70,10 @@ impl MonitorUseCase {
                     },
                 };
 
-                // Emite o evento para o frontend
+                // Emit the event to the frontend
                 let _ = app_handle.emit("monitor-check", report);
 
-                // Espera pelo intervalo
+                // Wait for the interval
                 tokio::time::sleep(tokio::time::Duration::from_secs(mon.interval_seconds)).await;
             }
         });

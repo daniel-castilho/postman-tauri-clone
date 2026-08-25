@@ -6,15 +6,19 @@ mod infrastructure;
 mod presentation;
 
 // ...
+use tauri::Manager;
 use application::commands::send_request::SendRequestUseCase;
 use application::commands::workspace::WorkspaceUseCase;
 use infrastructure::http::reqwest_adapter::ReqwestHttpClientAdapter;
 use infrastructure::environment::variable_resolver_adapter::RealVariableResolver;
 use infrastructure::scripting::quickjs_runner::QuickJsScriptRunner;
 use infrastructure::persistence::fs_collection_repository::FsCollectionRepository;
+use infrastructure::persistence::fs_design_repository::FsDesignRepository;
 
 use std::sync::Arc;
 use application::commands::run_collection::RunCollectionUseCase;
+use application::commands::design_tasks::DesignUseCase;
+use application::ports::websocket::WebSocketPort;
 
 use infrastructure::websocket::tungstenite_adapter::TungsteniteWebSocketAdapter;
 use infrastructure::ai::gemini_adapter::GeminiAIAdapter;
@@ -52,7 +56,7 @@ fn main() {
     let generate_code_usecase = GenerateCodeUseCase::new(codegen_adapter);
 
     let fs_collection_repo = Arc::new(FsCollectionRepository::new());
-    let workspace_usecase = WorkspaceUseCase::new(fs_collection_repo.clone())
+    let workspace_usecase = WorkspaceUseCase::new(Box::new(FsCollectionRepository::new()))
         .expect("Failed to initialize workspace use case");
     
     let import_adapter = Arc::new(OpenApiImporterAdapter::new());
@@ -61,15 +65,19 @@ fn main() {
     let docs_adapter = Arc::new(MarkdownDocsAdapter::new());
     let docs_usecase = DocsUseCase::new(docs_adapter);
 
-    let load_test_usecase = LoadTestUseCase::new(http_client.clone(), variable_resolver.clone(), script_runner.clone());
+    let load_test_usecase = LoadTestUseCase::new(http_client.clone(), variable_resolver.clone());
     let monitor_usecase = MonitorUseCase::new(http_client.clone());
     let sync_usecase = SyncUseCase::new();
 
+    let design_usecase = DesignUseCase::new(Box::new(FsDesignRepository));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
-            println!("🚀 Postman da Vida - Clean Architecture iniciado!");
-            app.manage(Arc::new(TungsteniteWebSocketAdapter::new(app.handle().clone())));
+        .setup(move |app| {
+            println!("🚀 Tyny Pulse - Clean Architecture iniciado!");
+            let ws_adapter: Arc<dyn WebSocketPort> =
+                Arc::new(TungsteniteWebSocketAdapter::new(app.handle().clone()));
+            app.manage(ws_adapter);
             app.manage(http_client.clone());
             Ok(())
         })
@@ -84,6 +92,7 @@ fn main() {
         .manage(load_test_usecase)
         .manage(monitor_usecase)
         .manage(sync_usecase)
+        .manage(design_usecase)
         .invoke_handler(tauri::generate_handler![
             presentation::commands::send_request,
             presentation::commands::run_collection,
@@ -114,7 +123,12 @@ fn main() {
             presentation::collections::load_globals,
             presentation::collections::save_globals,
             presentation::collections::import_collection_by_path,
-            presentation::collections::export_workspace
+            presentation::collections::export_workspace,
+            presentation::designs::list_designs,
+            presentation::designs::create_design,
+            presentation::designs::save_design,
+            presentation::designs::delete_design,
+            presentation::designs::lint_spec
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

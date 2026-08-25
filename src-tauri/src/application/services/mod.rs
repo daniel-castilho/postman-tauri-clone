@@ -1,2 +1,2 @@
-// Services / Orchestrators (ex: VariableResolverService)
-// Será usado em fases mais avançadas
+// Services / Orchestrators (e.g. VariableResolverService)
+// Will be used in more advanced phases

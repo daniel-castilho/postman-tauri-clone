@@ -1,0 +1,10 @@
+# Cargo build-time configuration shared by every workspace member.
+#
+# ts-rs (TypeScript bindings generation) is configured here so that the
+# export location stays consistent between local machines and CI instead of
+# being repeated as a fragile relative path on every annotated type.
+[env]
+# Bindings are written into the React sources, next to their consumers.
+TS_RS_EXPORT_DIR = { value = "src/types/generated", relative = true }
+# Keep 64-bit integers usable in UI math (default would emit `bigint`).
+TS_RS_LARGE_INT = "number"

@@ -36,9 +36,9 @@ impl EncryptionManager {
             .map_err(|e| format!("Failed to hash password: {}", e))?;
 
         // Extract the raw hash output for AES key
-        let hash_bytes = password_hash.hash
-            .ok_or("No hash output from Argon2")?
-            .as_bytes();
+        let hash_output = password_hash.hash
+            .ok_or_else(|| "Failed to derive key: no hash output from Argon2".to_string())?;
+        let hash_bytes = hash_output.as_bytes();
 
         let mut key = [0u8; 32];
         key.copy_from_slice(hash_bytes);
@@ -49,6 +49,9 @@ impl EncryptionManager {
     /// Generates a new random salt for key derivation.
     /// This should be stored securely and reused for subsequent encryption operations
     /// with the same master password.
+    // Consumed by the upcoming vault adapter (see AGENTS.md technical debt);
+    // not yet wired into any IPC command.
+    #[allow(dead_code)]
     pub fn generate_salt() -> String {
         SaltString::generate(&mut rand::rngs::OsRng).to_string()
     }

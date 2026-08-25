@@ -1,18 +1,18 @@
 // src-tauri/src/application/commands/import_tasks.rs
 use std::sync::Arc;
 use crate::application::ports::import_port::ImportPort;
-use crate::application::ports::collection_repository::CollectionRepository;
+use crate::application::ports::collection_repository::CollectionRepositoryPort;
 use crate::domain::models::Collection;
 use crate::domain::errors::DomainError;
 
 #[derive(Clone)]
 pub struct ImportUseCase {
     import_port: Arc<dyn ImportPort>,
-    collection_repo: Arc<dyn CollectionRepository>,
+    collection_repo: Arc<dyn CollectionRepositoryPort>,
 }
 
 impl ImportUseCase {
-    pub fn new(import_port: Arc<dyn ImportPort>, collection_repo: Arc<dyn CollectionRepository>) -> Self {
+    pub fn new(import_port: Arc<dyn ImportPort>, collection_repo: Arc<dyn CollectionRepositoryPort>) -> Self {
         Self { import_port, collection_repo }
     }
 

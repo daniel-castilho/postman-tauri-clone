@@ -38,38 +38,39 @@ impl SendRequestUseCase {
         let mut active_env = environment.clone();
         let mut active_globals = globals.clone();
         let mut active_session = session_vars.clone();
+        let mut env_vars = environment.to_runtime_map();
         let mut all_logs = vec![];
 
-        // 1. Executa Pre-request Script (se existir)
+        // 1. Run pre-request script (if present)
         let pre_request = request.scripts.as_ref().map(|s| s.pre_request.clone()).unwrap_or_default();
         if !pre_request.is_empty() {
             let logs = self.script_runner.execute_pre_request(
-                &pre_request, 
-                &mut request, 
-                &mut active_env.variables, 
+                &pre_request,
+                &mut request,
+                &mut env_vars,
                 &mut active_globals.variables,
                 &mut active_session
             )?;
             all_logs.extend(logs);
         }
 
-        // 2. Resolve variáveis
-        self.resolve_variables(&mut request, &active_env.variables, &active_globals.variables, &active_session)?;
+        // 2. Resolve variables
+        self.resolve_variables(&mut request, &env_vars, &active_globals.variables, &active_session)?;
 
-        // 3. Envia a request
+        // 3. Send the request
         let mut response = if matches!(request.method, crate::domain::models::HttpMethod::GRPC) {
             self.grpc_client.call(request.clone()).await?
         } else {
             self.http_client.send(request.clone()).await?
         };
 
-        // 4. Executa Test Script (se existir)
+        // 4. Run test script (if present)
         let test_script = request.scripts.as_ref().map(|s| s.tests.clone()).unwrap_or_default();
         if !test_script.is_empty() {
             let (test_results, test_logs) = self.script_runner.execute_test(
-                &test_script, 
-                &response, 
-                &mut active_env.variables,
+                &test_script,
+                &response,
+                &mut env_vars,
                 &mut active_globals.variables,
                 &mut active_session
             )?;
@@ -78,6 +79,9 @@ impl SendRequestUseCase {
         }
 
         response.logs = all_logs;
+
+        // Persist script-driven environment mutations back into the structured model
+        active_env.apply_runtime_map(&env_vars);
 
         Ok((response, active_env, active_globals, active_session))
     }
@@ -102,7 +106,7 @@ impl SendRequestUseCase {
             }
         }
 
-        // Resolve Body (somente para Raw por enquanto)
+        // Resolve Body (raw only for now)
         if let Some(crate::domain::models::Body::Raw(ref mut body_str, _)) = request.body {
             *body_str = self.variable_resolver.resolve(body_str, env_vars, collection_vars, global_vars, session_vars)?;
         }

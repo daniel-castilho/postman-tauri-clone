@@ -1,64 +1,71 @@
 # Project Progress Tracker
 
-Este documento serve como um mapa de estado global do projeto. Qualquer Agente de IA assumindo o projeto deve consultar este arquivo (junto com o `AGENTS.md`) para entender em que fase de desenvolvimento nos encontramos.
+This document is the global state map of the project. Any AI agent taking over the project must consult this file (together with `AGENTS.md`) to understand the current development phase.
 
-## Current Stage: **Fase 18 (Headless Automation & CLI)** - Em Andamento 🚀
-
----
-
-### Milestones Atingidos (Fase 8-14 Completa ✅ - Plataforma Base)
-- [x] **Multi-Protocolo**: GraphQL, WebSocket, gRPC (Mock Hub).
-- [x] **Cookie Manager**: Persistência de sessão automática.
-- [x] **IA-Native**: Test Generator e Explainaions via Gemini.
-- [x] **Load Testing Engine**: Testes multi-threaded em Rust (Tokio).
-- [x] **Collaborative Sync**: Sync em tempo real via Tauri Events com `SyncQueue`.
-- [x] **Workspace Member Management**: Gestão de acessos com controle granular.
-
-### Milestones Atingidos (Fase 15 Completa ✅ - DX & Power Tools)
-- [x] **Global Command Palette (Ctrl + P)**: Busca instantânea em todo o workspace (Requests, Envs, Actions).
-- [x] **Keyboard Shortcuts Engine**: Atalhos premium para `Send`, `Save` e Navegação.
-- [x] **Quick Environment Switcher**: Alternância instantânea via teclado (Ctrl + 1-9).
-
-### Milestones Atingidos (Fase 17 Completa ✅ - Enterprise Security)
-- [x] **Local Secrets Encryption (AES-256-GCM)**: Proteção de segredos em nível militar no disco via Rust.
-- [x] **OfflineSync Queue**: Resiliência extrema para sincronização em ambientes instáveis.
-- [x] **Transparent Security**: Descriptografia automática e segura de variáveis locais.
-
-### Milestones Atingidos (Fase 20 Completa ✅ - SpecHub / API Design)
-- [x] **API Design Hub**: Espaço dedicado para autoria de especificações OpenAPI 3.0/3.1.
-- [x] **Governance Linter**: Validação de padrões de design em tempo real no backend (Rust).
-- [x] **Unified Context Switching**: Interface híbrida para Design e Execução.
+## Current Stage: **Phase 18 (Headless Automation & CLI)** — In Progress 🚀
 
 ---
 
-## 🚀 Próximas Atividades (Rumo ao Postman Killer)
+### Milestones Achieved (Phases 8-14 Complete ✅ - Base Platform)
+- [x] **Multi-Protocol**: GraphQL, WebSocket, gRPC (Mock Hub).
+- [x] **Cookie Manager**: Automatic session persistence.
+- [x] **AI-Native**: Test Generator and Explanations via Gemini.
+- [x] **Load Testing Engine**: Multi-threaded tests in Rust (Tokio).
+- [x] **Collaborative Sync**: Real-time sync via Tauri Events with `SyncQueue`.
+- [x] **Workspace Member Management**: Access management with granular control.
 
-### Fase 18: Headless Automation (O CLI) (PRÓXIMO FOCO)
-- [ ] **Tauri CLI Commands**: Adicionar sub-comandos ao binário para execução de coleções via terminal.
-- [ ] **JSON/JUnit Reporting**: Geração de relatórios de testes para pipelines CI/CD.
-- [ ] **GitHub Actions Integration**: Template oficial de automação.
+### Milestones Achieved (Phase 15 Complete ✅ - DX & Power Tools)
+- [x] **Global Command Palette (Ctrl + P)**: Instant workspace-wide search (Requests, Envs, Actions).
+- [x] **Keyboard Shortcuts Engine**: Premium shortcuts for `Send`, `Save` and Navigation.
+- [x] **Quick Environment Switcher**: Instant switching via keyboard (Ctrl + 1-9).
 
-### Fase 19: Advanced Scripting & npm Integration
-- [ ] **Dynamic Dependency Resolver**: Possibilidade de importar pacotes npm nos scripts (QuickJS sandbox expandida).
-- [ ] **In-App Package Manager**: Gestão visual de bibliotecas externas.
+### Milestones Achieved (Phase 17 Complete ✅ - Enterprise Security)
+- [x] **Local Secrets Encryption (AES-256-GCM)**: Military-grade secret protection on disk via Rust.
+- [x] **Offline Sync Queue**: Extreme resilience for syncing under unstable networks.
+- [x] **Transparent Security**: Automatic and secure decryption of local variables.
 
-### Fase 16: Advanced Collaboration & Presence
-- [ ] **Live Avatars/Presence**: Identificação visual de membros ativos no workspace core.
-- [ ] **Conflict Resolution UI**: Sistema de merge/diff quando houver edições simultâneas (Advanced CRDT).
+### Milestones Achieved (Phase 20 Complete ✅ - SpecHub / API Design)
+- [x] **API Design Hub**: Dedicated space for authoring OpenAPI 3.0/3.1 specifications.
+- [x] **Governance Linter**: Design-standard validation in real time in the backend (Rust).
+- [x] **Unified Context Switching**: Hybrid interface for Design and Execution.
+
+### Milestones Achieved (Zero Type-Drift Epic Complete ✅ - End-to-End Type Safety)
+- [x] **IPC Surface Repair**: All 30+ Tauri commands compile, are registered, and match frontend payloads (`ws_*`, `ai_*`, `run_collection`, designs, monitors, sync, cookies).
+- [x] **ts-rs Integration**: All IPC-crossing domain types derive `TS`; bindings generated into `src/types/generated/` by `cargo test export_ts_bindings` (39 types).
+- [x] **Single Source of Truth**: Frontend consumes generated contracts via the `src/types/ipc.ts` barrel; hand-written duplicate interfaces removed from `workspaceStore.ts`.
+- [x] **IPC Bug Fixes Surfaced By Typing**: `send_request` now returns a named `SendRequestOutput`; complete request literals (missing `name`/`description` fields fixed); environment fallbacks corrected to `variables: []`; runner/load-test payloads include `globals`/`sessionVars`.
+- [x] **CI Type-Drift Guard**: `.github/workflows/ci.yml` regenerates bindings and fails when `src/types/generated/` is stale; also enforces clippy `-D warnings`, `npm run build`, and the architecture boundary grep.
 
 ---
 
-### 📐 Diretivas de Arquitetura (Atenção!)
-- [ ] **Strategy Pattern**: Sempre que houver acúmulo de `match` complexos em rede ou lógica de negócio, refatorar para Traits + Enums tipados para extensibilidade.
+## 🚀 Next Activities (Towards the Postman Killer)
 
-### Arquitetura Atual
-* **Frontend**: React 19 + Zustand + Monaco Editor + Lucide Icons + Framer Motion.
+### Phase 18: Headless Automation (The CLI) (NEXT FOCUS)
+- [ ] **Tauri CLI Commands**: Add subcommands to the binary for running collections from the terminal.
+- [ ] **JSON/JUnit Reporting**: Generate test reports for CI/CD pipelines.
+- [ ] **GitHub Actions Integration**: Official automation template.
+
+### Phase 19: Advanced Scripting & npm Integration
+- [ ] **Dynamic Dependency Resolver**: Import npm packages inside scripts (expanded QuickJS sandbox).
+- [ ] **In-App Package Manager**: Visual management of external libraries.
+
+### Phase 16: Advanced Collaboration & Presence
+- [ ] **Live Avatars/Presence**: Visual identification of active members in the workspace core.
+- [ ] **Conflict Resolution UI**: Merge/diff system for simultaneous edits (Advanced CRDT).
+
+---
+
+### 📐 Architecture Directives (Attention!)
+- [ ] **Strategy Pattern**: Whenever complex network/business `match` blocks accumulate, refactor into Traits + typed Enums for extensibility.
+
+### Current Architecture
+* **Frontend**: React 19 + Zustand + Monaco Editor + Lucide Icons + Framer Motion. Types imported from ts-rs generated bindings (`src/types/ipc.ts` barrel → `src/types/generated/`).
 * **Backend**: Tauri v2 (Rust). Encryption via AES-256-GCM.
-* **IA**: Gemini 1.5 Series (via logic layer).
-* **Mock**: Axum Server integrado no Rust.
+* **AI**: Gemini 1.5 Series (via logic layer).
+* **Mock**: Axum Server embedded in Rust.
 * **SpecHub**: OpenAPI Design & Governance Engine.
-* **Sync**: Background robusto com `Offline Queue` e detecção de conectividade.
-* **Persistência**: Local-First via repositórios Fs (Collection, Environment, Design, Globals).
+* **Sync**: Robust background with `Offline Queue` and connectivity detection.
+* **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
 
 ---
-_Última Atualização: Janeiro 2024. Fases 15, 17 e 20 finalizadas. Foco agora na automação terminal (CLI)._
+_Last Updated: August 2026. Zero Type-Drift epic completed: end-to-end type safety across the Tauri IPC boundary. Focus now on terminal automation (CLI)._

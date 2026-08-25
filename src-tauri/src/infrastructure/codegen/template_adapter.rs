@@ -1,4 +1,5 @@
 // src-tauri/src/infrastructure/codegen/template_adapter.rs
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use crate::application::ports::code_generator::CodeGeneratorPort;
 use crate::domain::models::{HttpRequest, Body, Auth};
 
@@ -6,6 +7,12 @@ pub struct TemplateCodeGeneratorAdapter;
 
 impl TemplateCodeGeneratorAdapter {
     pub fn new() -> Self { Self }
+}
+
+impl Default for TemplateCodeGeneratorAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CodeGeneratorPort for TemplateCodeGeneratorAdapter {
@@ -25,7 +32,7 @@ impl CodeGeneratorPort for TemplateCodeGeneratorAdapter {
             match auth {
                 Auth::Bearer { token } => headers_js.push_str(&format!("myHeaders.append(\"Authorization\", \"Bearer {}\");\n", token)),
                 Auth::Basic { username, password } => {
-                    let auth_base64 = base64::encode(format!("{}:{}", username, password));
+                    let auth_base64 = STANDARD.encode(format!("{}:{}", username, password));
                     headers_js.push_str(&format!("myHeaders.append(\"Authorization\", \"Basic {}\");\n", auth_base64));
                 },
                 _ => {}
@@ -70,7 +77,7 @@ fetch(\"{}\", requestOptions)
             match auth {
                 Auth::Bearer { token } => headers_obj.push_str(&format!("    \"Authorization\": \"Bearer {}\",\n", token)),
                 Auth::Basic { username, password } => {
-                    let auth_base = base64::encode(format!("{}:{}", username, password));
+                    let auth_base = STANDARD.encode(format!("{}:{}", username, password));
                     headers_obj.push_str(&format!("    \"Authorization\": \"Basic {}\",\n", auth_base));
                 },
                 _ => {}

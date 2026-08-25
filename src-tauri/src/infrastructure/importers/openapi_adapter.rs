@@ -1,7 +1,7 @@
 // src-tauri/src/infrastructure/importers/openapi_adapter.rs
 use serde_json::Value;
 use crate::application::ports::import_port::ImportPort;
-use crate::domain::models::{Collection, CollectionItem, HttpRequest, HttpMethod, Url};
+use crate::domain::models::{Collection, CollectionItem, HttpRequest, HttpMethod, RequestId, Url};
 use crate::domain::errors::DomainError;
 use uuid::Uuid;
 
@@ -9,6 +9,12 @@ pub struct OpenApiImporterAdapter;
 
 impl OpenApiImporterAdapter {
     pub fn new() -> Self { Self }
+}
+
+impl Default for OpenApiImporterAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ImportPort for OpenApiImporterAdapter {
@@ -37,9 +43,10 @@ impl ImportPort for OpenApiImporterAdapter {
 
                         let summary = details["summary"].as_str().unwrap_or(path);
                         
-                        items.push(CollectionItem::Request(HttpRequest {
-                            id: Uuid::new_v4().to_string(),
+                        items.push(CollectionItem::Request(Box::new(HttpRequest {
+                            id: RequestId(Uuid::new_v4().to_string()),
                             name: summary.to_string(),
+                            description: None,
                             method: http_method,
                             url: Url(format!("{{{{base_url}}}}{}", path)),
                             headers: Vec::new(),
@@ -47,7 +54,8 @@ impl ImportPort for OpenApiImporterAdapter {
                             auth: None,
                             variables: std::collections::HashMap::new(),
                             scripts: None,
-                        }));
+                            grpc_config: None,
+                        })));
                     }
                 }
             }
@@ -56,7 +64,9 @@ impl ImportPort for OpenApiImporterAdapter {
         Ok(Collection {
             id: Uuid::new_v4().to_string(),
             name: title,
+            description: None,
             items,
+            variables: std::collections::HashMap::new(),
         })
     }
 }

@@ -25,6 +25,12 @@ impl FsCollectionRepository {
     }
 }
 
+impl Default for FsCollectionRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CollectionRepositoryPort for FsCollectionRepository {
     fn list_collections(&self, workspace_path: &str) -> Result<Vec<Collection>, DomainError> {
         let path = Path::new(workspace_path);
@@ -37,19 +43,17 @@ impl CollectionRepositoryPort for FsCollectionRepository {
         let entries = fs::read_dir(path)
             .map_err(|e| DomainError::PersistenceError(format!("Error reading workspace: {}", e)))?;
 
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let p = entry.path();
-                if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("json") {
-                    let filename = p.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-                    if filename == "environments.json" || filename == "globals.json" {
-                        continue;
-                    }
-                    if let Ok(content) = fs::read_to_string(&p) {
-                        // Tenta desserializar o arquivo em uma Collection
-                        if let Ok(collection) = serde_json::from_str::<Collection>(&content) {
-                            collections.push(collection);
-                        }
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("json") {
+                let filename = p.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+                if filename == "environments.json" || filename == "globals.json" {
+                    continue;
+                }
+                if let Ok(content) = fs::read_to_string(&p) {
+                    // Try to deserialize the file into a Collection
+                    if let Ok(collection) = serde_json::from_str::<Collection>(&content) {
+                        collections.push(collection);
                     }
                 }
             }
@@ -88,7 +92,7 @@ impl CollectionRepositoryPort for FsCollectionRepository {
             return Ok(vec![crate::domain::models::Environment {
                 id: "env_local".into(),
                 name: "Local".into(),
-                variables: std::collections::HashMap::new(),
+                variables: Vec::new(),
             }]);
         }
 

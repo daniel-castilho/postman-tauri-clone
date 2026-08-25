@@ -26,11 +26,11 @@ export const CommandPalette: React.FC<Props> = ({ onClose }) => {
     setActiveEnvironment, updateRequest, activeRequest 
   } = useWorkspaceStore();
 
-  // Gerar lista dinâmica de itens baseada no estado atual
+  // Build a dynamic item list based on the current state
   const getItems = (): CommandItem[] => {
     const items: CommandItem[] = [];
 
-    // Ações Rápidas
+    // Quick actions
     items.push({ 
       id: 'act_send', name: 'Send Request', type: 'Action', 
       icon: <Play size={16} />, shortcut: 'Ctrl + Enter', 
@@ -42,7 +42,7 @@ export const CommandPalette: React.FC<Props> = ({ onClose }) => {
       action: () => { if (activeRequest) updateRequest(activeRequest); onClose(); } 
     });
 
-    // Ambientes
+    // Environments
     environments.forEach(env => {
       items.push({ 
         id: `env_${env.id}`, name: `Switch to: ${env.name}`, type: 'Environment', 
@@ -51,7 +51,7 @@ export const CommandPalette: React.FC<Props> = ({ onClose }) => {
       });
     });
 
-    // Requisições das Coleções (Recursivo)
+    // Collection requests (recursive)
     const addReqs = (collItems: any[]) => {
       collItems.forEach(item => {
         if (item.Request) {

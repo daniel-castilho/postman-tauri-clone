@@ -35,6 +35,12 @@ impl AxumMockServerAdapter {
     }
 }
 
+impl Default for AxumMockServerAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 async fn handle_mock(
     AxumState(state): AxumState<Arc<RwLock<ServerState>>>,
     req: Request,
@@ -46,14 +52,14 @@ async fn handle_mock(
     // Find matching rule
     let matching_rule = state.rules.iter().find(|r| {
         let path_matches = r.path == path;
-        let method_matches = match (&r.method, method) {
-            (HttpMethod::GET, &Method::GET) => true,
-            (HttpMethod::POST, &Method::POST) => true,
-            (HttpMethod::PUT, &Method::PUT) => true,
-            (HttpMethod::DELETE, &Method::DELETE) => true,
-            (HttpMethod::PATCH, &Method::PATCH) => true,
-            _ => false,
-        };
+        let method_matches = matches!(
+            (&r.method, method),
+            (HttpMethod::GET, &Method::GET)
+                | (HttpMethod::POST, &Method::POST)
+                | (HttpMethod::PUT, &Method::PUT)
+                | (HttpMethod::DELETE, &Method::DELETE)
+                | (HttpMethod::PATCH, &Method::PATCH)
+        );
         path_matches && method_matches
     });
 

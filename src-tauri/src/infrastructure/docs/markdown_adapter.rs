@@ -29,7 +29,7 @@ impl MarkdownDocsAdapter {
                                 md.push_str(&format!("| `{}` | `{}` |\n", h.key, h.value));
                             }
                         }
-                        md.push_str("\n");
+                        md.push('\n');
                     }
 
                     if let Some(body) = &req.body {
@@ -59,13 +59,19 @@ impl MarkdownDocsAdapter {
     }
 }
 
+impl Default for MarkdownDocsAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DocsGeneratorPort for MarkdownDocsAdapter {
     fn generate_markdown(&self, collection: &Collection) -> Result<String, DomainError> {
         let mut md = format!("# Collection: {}\n\n", collection.name);
         if let Some(desc) = &collection.description {
             md.push_str(&format!("_{}_\n\n", desc));
         }
-        md.push_str("Documentação gerada automaticamente via **Postman da Vida**.\n\n");
+        md.push_str("Documentação gerada automaticamente via **Tyny Pulse**.\n\n");
         md.push_str(&self.process_items(&collection.items, 1));
         Ok(md)
     }

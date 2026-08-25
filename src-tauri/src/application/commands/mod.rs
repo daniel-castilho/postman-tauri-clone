@@ -8,4 +8,6 @@ pub mod import_tasks;
 pub mod docs_tasks;
 pub mod load_test;
 pub mod design_tasks;
+pub mod monitor_tasks;
 pub mod sync_tasks;
+pub mod export_ts_bindings;

@@ -12,6 +12,21 @@ impl QuickJsScriptRunner {
     }
 }
 
+impl Default for QuickJsScriptRunner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Aggregated mutable variable scopes returned by a sandboxed script execution.
+pub type ScriptVariableScopes = (
+    Vec<TestResult>,
+    Vec<ScriptLog>,
+    std::collections::HashMap<String, String>,
+    std::collections::HashMap<String, String>,
+    std::collections::HashMap<String, String>,
+);
+
 impl ScriptRunnerPort for QuickJsScriptRunner {
     fn execute_pre_request(
         &self, 
@@ -64,7 +79,7 @@ impl QuickJsScriptRunner {
         mut env_vars: std::collections::HashMap<String, String>,
         mut global_vars: std::collections::HashMap<String, String>,
         mut session_vars: std::collections::HashMap<String, String>,
-    ) -> Result<(Vec<TestResult>, Vec<ScriptLog>, std::collections::HashMap<String, String>, std::collections::HashMap<String, String>, std::collections::HashMap<String, String>), DomainError> {
+    ) -> Result<ScriptVariableScopes, DomainError> {
         let context = Context::new().map_err(|e| DomainError::ScriptError(format!("Failed to create JS context: {}", e)))?;
         
         let env_json = serde_json::to_string(&env_vars).unwrap_or_else(|_| "{}".to_string());

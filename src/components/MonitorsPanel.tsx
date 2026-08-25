@@ -3,23 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { Activity, ShieldCheck, ShieldAlert, Clock, Plus, Trash2, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
+import type { MonitorDefinition, MonitorReport } from '../types/ipc';
 import './MonitorsPanel.css';
-
-interface MonitorDefinition {
-  id: string;
-  name: string;
-  url: string;
-  interval_seconds: number;
-  enabled: boolean;
-}
-
-interface MonitorReport {
-  monitor_id: string;
-  last_check: string;
-  status: number;
-  response_time_ms: number;
-  is_healthy: boolean;
-}
 
 export const MonitorsPanel: React.FC = () => {
   const [monitors, setMonitors] = useState<MonitorDefinition[]>([]);
@@ -28,7 +13,7 @@ export const MonitorsPanel: React.FC = () => {
   const [newMon, setNewMon] = useState({ name: '', url: '', interval: 60 });
 
   useEffect(() => {
-    // Escuta eventos de status do backend
+    // Listens for status events from the backend
     const unlisten = listen<MonitorReport>('monitor-check', (event) => {
       setReports(prev => ({
         ...prev,

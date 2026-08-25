@@ -3,18 +3,18 @@ use crate::domain::models::Collection;
 use crate::domain::errors::DomainError;
 
 pub trait CollectionRepositoryPort: Send + Sync {
-    // Retorna todas as coleções encontradas no root directory do workspace atual.
+    // Returns every collection found in the root directory of the current workspace.
     fn list_collections(&self, workspace_path: &str) -> Result<Vec<Collection>, DomainError>;
-    // Salva ou sobrescreve uma coleção específica em um arquivo (ex: "workspace_path/collection_id.json")
+    // Saves or overwrites a specific collection file (e.g. "workspace_path/collection_id.json")
     fn save_collection(&self, workspace_path: &str, collection: &Collection) -> Result<(), DomainError>;
-    // Deleta uma coleção pelo ID
+    // Deletes a collection by ID
     fn delete_collection(&self, workspace_path: &str, collection_id: &str) -> Result<(), DomainError>;
-    
-    // Gerencia o arquivo `environments.json` no workspace
+
+    // Manages the `environments.json` file in the workspace
     fn list_environments(&self, workspace_path: &str) -> Result<Vec<crate::domain::models::Environment>, DomainError>;
     fn save_environments(&self, workspace_path: &str, environments: &[crate::domain::models::Environment]) -> Result<(), DomainError>;
 
-    // Gerencia o arquivo `globals.json` no workspace
+    // Manages the `globals.json` file in the workspace
     fn load_globals(&self, workspace_path: &str) -> Result<crate::domain::models::GlobalVariables, DomainError>;
     fn save_globals(&self, workspace_path: &str, globals: &crate::domain::models::GlobalVariables) -> Result<(), DomainError>;
 }

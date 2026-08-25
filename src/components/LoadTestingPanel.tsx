@@ -3,18 +3,8 @@ import { useWorkspaceStore } from '../store/workspaceStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Play, Activity, Clock, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { LoadTestReport } from '../types/ipc';
 import './LoadTestingPanel.css';
-
-interface LoadTestReport {
-  totalRequests: number;
-  successCount: number;
-  failureCount: number;
-  avgTimeMs: number;
-  minTimeMs: number;
-  maxTimeMs: number;
-  p95TimeMs: number;
-  requestsPerSecond: number;
-}
 
 export const LoadTestingPanel: React.FC = () => {
   const { activeRequest, environments, activeEnvironmentId, globals } = useWorkspaceStore();
@@ -26,7 +16,7 @@ export const LoadTestingPanel: React.FC = () => {
   });
   const [report, setReport] = useState<LoadTestReport | null>(null);
 
-  const activeEnv = environments?.find((e: any) => e.id === activeEnvironmentId) || { id: "env_default", name: "No Environment", variables: {} };
+  const activeEnv = environments?.find((e: any) => e.id === activeEnvironmentId) || { id: "env_default", name: "No Environment", variables: [] };
 
   const startTest = async () => {
     if (!activeRequest) return;
@@ -34,8 +24,8 @@ export const LoadTestingPanel: React.FC = () => {
     setReport(null);
     
     try {
-      // Simplificando o envio da request para o load test
-      // Em um cenário real, poderíamos querer enviar o body completo etc.
+      // Simplifying the request sent to the load test
+      // In a real scenario we might want to send the full body etc.
       const result = await invoke<LoadTestReport>("run_load_test", {
         request: activeRequest,
         config: {

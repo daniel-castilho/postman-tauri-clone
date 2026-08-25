@@ -1,3 +1,4 @@
+pub mod grpc_client;
 pub mod http_client;
 pub mod variable_resolver;
 pub mod script_runner;

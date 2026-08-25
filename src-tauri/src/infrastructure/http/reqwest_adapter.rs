@@ -15,7 +15,7 @@ pub struct ReqwestHttpClientAdapter {
 impl ReqwestHttpClientAdapter {
     pub fn new() -> Self {
         let jar = std::sync::Arc::new(reqwest::cookie::Jar::default());
-        Self { 
+        Self {
             client: Client::builder()
                 .cookie_provider(std::sync::Arc::clone(&jar))
                 .timeout(std::time::Duration::from_secs(30))
@@ -24,7 +24,7 @@ impl ReqwestHttpClientAdapter {
             jar
         }
     }
-    
+
     fn map_method(method: &HttpMethod) -> ReqwestMethod {
         match method {
             HttpMethod::GET => ReqwestMethod::GET,
@@ -35,8 +35,15 @@ impl ReqwestHttpClientAdapter {
             HttpMethod::HEAD => ReqwestMethod::HEAD,
             HttpMethod::OPTIONS => ReqwestMethod::OPTIONS,
             HttpMethod::WS => ReqwestMethod::GET, // WS starts with GET upgrade
+            HttpMethod::GRPC => ReqwestMethod::POST,
             HttpMethod::CUSTOM(m) => ReqwestMethod::from_bytes(m.as_bytes()).unwrap_or(ReqwestMethod::GET),
         }
+    }
+}
+
+impl Default for ReqwestHttpClientAdapter {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -115,7 +122,7 @@ impl HttpClientPort for ReqwestHttpClientAdapter {
                                     },
                                     Err(e) => {
                                         println!("Warning: Could not read file for multipart: {}", e);
-                                        // Prosseguimos com o campo vazio ou erro? Postman geralmente falha silenciosamente ou envia string.
+                                        // Proceed with an empty field or error? Postman usually fails silently or sends a string.
                                         form = form.text(field.key.clone(), format!("[Error reading file: {}]", path));
                                     }
                                 }
@@ -136,7 +143,7 @@ impl HttpClientPort for ReqwestHttpClientAdapter {
                     payload.insert("query", serde_json::Value::String(query.clone()));
                     
                     if !variables.is_empty() {
-                        if let Ok(vars_json) = serde_json::from_str::<serde_json::Value>(variables) {
+                        if let Ok(vars_json) = serde_json::from_str::<serde_json::Value>(variables.as_str()) {
                             payload.insert("variables", vars_json);
                         }
                     }
@@ -177,6 +184,7 @@ impl HttpClientPort for ReqwestHttpClientAdapter {
             time_ms,
             size_bytes,
             tests_results: vec![],
+            logs: vec![],
         })
     }
 }

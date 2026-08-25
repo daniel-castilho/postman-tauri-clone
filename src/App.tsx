@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { useWorkspaceStore, Environment, TestResult, HttpRequest } from "./store/workspaceStore";
+import { useWorkspaceStore } from "./store/workspaceStore";
+import type { Environment, HttpRequest, HttpMethod, HttpResponse, SendRequestOutput, TestResult } from "./types/ipc";
 import { open as openFile } from '@tauri-apps/plugin-dialog';
 import { WorkspaceSelector } from "./components/WorkspaceSelector";
 import { Sidebar } from "./components/Sidebar";
@@ -54,7 +55,7 @@ function App() {
   const [responseMode, setResponseMode] = useState<'Pretty' | 'Raw'>('Pretty');
   
   const [url, setUrl] = useState("https://jsonplaceholder.typicode.com/users/1");
-  const [method, setMethod] = useState("GET");
+  const [method, setMethod] = useState<HttpMethod>("GET");
   const [headers, setHeaders] = useState<{key: string, value: string, enabled: boolean}[]>([]);
   const [params, setParams] = useState<{key: string, value: string, enabled: boolean}[]>([]);
   const [body, setBody] = useState<string>("");
@@ -101,13 +102,13 @@ function App() {
       let initialFormData: any[] = [];
 
       if (activeRequest.body) {
-        if (activeRequest.body.Raw) {
+        if ('Raw' in activeRequest.body) {
           initialBody = activeRequest.body.Raw[0] || "";
           initialMode = 'Raw';
-        } else if (activeRequest.body.FormData) {
+        } else if ('FormData' in activeRequest.body) {
           initialFormData = activeRequest.body.FormData;
           initialMode = 'FormData';
-        } else if (activeRequest.body.GraphQL) {
+        } else if ('GraphQL' in activeRequest.body) {
           setGqlQuery(activeRequest.body.GraphQL.query || "");
           setGqlVariables(activeRequest.body.GraphQL.variables || "");
           initialMode = 'GraphQL';
@@ -154,9 +155,11 @@ function App() {
 
       const activeEnv = environments?.find((e: any) => e.id === activeEnvironmentId) || { id: "env_default", name: "No Environment", variables: {} };
 
-      const [res, updatedEnv, updatedGlobals, updatedSession] = await invoke<[any, any, any, any]>("send_request", {
+      const output = await invoke<SendRequestOutput>("send_request", {
         request: {
           id: activeRequest?.id || `hist_${Date.now()}`,
+          name: activeRequest?.name || url,
+          description: activeRequest?.description || null,
           method: method,
           url: url,
           headers: headers.filter(h => h.key.trim() !== ''),
@@ -171,13 +174,14 @@ function App() {
             proto_path: protoPath,
             service: grpcService,
             method: grpcMethod,
-            metadata: [] // Para futura expansão
+            metadata: [] // For future expansion
           } : null
         },
         environment: activeEnv,
         globals: globals,
-        session_vars: sessionVariables
+        sessionVars: sessionVariables
       });
+      const { response: res, environment: updatedEnv, globals: updatedGlobals, sessionVars: updatedSession } = output;
 
       if (updatedEnv && activeEnvironmentId && updatedEnv.id === activeEnvironmentId) {
         updateEnvironment(updatedEnv);
@@ -188,18 +192,19 @@ function App() {
       }
 
       if (updatedSession) {
-         // Atualiza o store com as variáveis de sessão modificadas pelo script
+         // Update the store with session variables modified by scripts
          useWorkspaceStore.setState({ sessionVariables: updatedSession });
       }
 
       addToHistory({
         id: activeRequest?.id || `hist_${Date.now()}`,
         name: activeRequest?.name || url,
+        description: activeRequest?.description || null,
         method,
         url,
         headers,
         body: backendBody || (
-            bodyMode === 'Raw' ? { Raw: [body, "Json"] } : 
+            bodyMode === 'Raw' ? { Raw: [body, "Json"] } :
             bodyMode === 'GraphQL' ? { GraphQL: { query: gqlQuery, variables: gqlVariables } } :
             { FormData: formData.filter(f => f.key.trim() !== '') }
         ),
@@ -208,7 +213,8 @@ function App() {
         scripts: {
           preRequest: preRequestScript,
           tests: testScript
-        }
+        },
+        grpc_config: null
       });
 
       setResponse(res);
@@ -265,7 +271,7 @@ function App() {
       curl += ` \\\n--header 'Authorization: Bearer ${auth.Bearer.token}'`;
     }
 
-    if (['POST', 'PUT', 'PATCH'].includes(method) && body) {
+    if (['POST', 'PUT', 'PATCH'].includes(method as string) && body) {
       curl += ` \\\n--data '${body.replace(/'/g, "'\\''")}'`;
     }
 
@@ -282,7 +288,7 @@ function App() {
       <div className="main-content-area">
         <header className="header">
           <div className="header-left">
-            <h1 className="logo">⚡ Postman Tauri</h1>
+            <h1 className="logo">⚡ Tyny Pulse</h1>
             <span className="workspace-path-badge">{workspacePath}</span>
           </div>
           <div className="header-right">
@@ -336,8 +342,8 @@ function App() {
             <Toaster theme={theme === 'dark' ? 'dark' : 'light'} position="bottom-right" richColors />
             <div className="request-bar">
             <select 
-              value={method} 
-              onChange={(e) => setMethod(e.target.value)}
+              value={method as string}
+              onChange={(e) => setMethod(e.target.value as HttpMethod)}
               className="method-select"
             >
               <option>GET</option>
@@ -507,31 +513,37 @@ function App() {
                       onClick={async () => {
                         const target = 'fetch';
                         setCodeTarget(target);
-                        const code = await invoke<string>("generate_js_code", { 
+                        const code = await invoke<string>("generate_js_code", {
                           request: {
                             id: activeRequest?.id || "temp",
+                            name: activeRequest?.name || url,
+                            description: activeRequest?.description || null,
                             method, url, headers: headers.filter(h => h.key.trim() !== ''),
                             body: bodyMode === 'Raw' ? { Raw: [body, "Json"] } : null,
-                            auth, variables: {}, scripts: { preRequest: preRequestScript, tests: testScript }
-                          }, 
-                          target 
+                            auth, variables: {}, scripts: { preRequest: preRequestScript, tests: testScript },
+                            grpc_config: null
+                          },
+                          target
                         });
                         setGeneratedCode(code);
                       }}
                     >Fetch</button>
-                    <button 
+                    <button
                       className={`target-btn ${codeTarget === 'node' ? 'active' : ''}`}
                       onClick={async () => {
                         const target = 'node';
                         setCodeTarget(target);
-                        const code = await invoke<string>("generate_js_code", { 
+                        const code = await invoke<string>("generate_js_code", {
                           request: {
                             id: activeRequest?.id || "temp",
+                            name: activeRequest?.name || url,
+                            description: activeRequest?.description || null,
                             method, url, headers: headers.filter(h => h.key.trim() !== ''),
                             body: bodyMode === 'Raw' ? { Raw: [body, "Json"] } : null,
-                            auth, variables: {}, scripts: { preRequest: preRequestScript, tests: testScript }
-                          }, 
-                          target 
+                            auth, variables: {}, scripts: { preRequest: preRequestScript, tests: testScript },
+                            grpc_config: null
+                          },
+                          target
                         });
                         setGeneratedCode(code);
                       }}
@@ -1083,7 +1095,7 @@ function App() {
             <div className="response-body-wrapper">
               {!response && !loading && (
                 <div className="empty-response-placeholder">
-                  // Insira uma URL acima e clique em Send para ver o resultado.
+                  // Enter a URL above and click Send to see the result.
                 </div>
               )}
               {loading && <div className="loading-spinner">Processando requisição...</div>}

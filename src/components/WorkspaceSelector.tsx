@@ -8,7 +8,7 @@ export function WorkspaceSelector() {
   return (
     <div className="workspace-selector-container">
       <div className="workspace-selector-card">
-        <h2>Bem-vindo ao Postman Tauri</h2>
+        <h2>Bem-vindo ao Tyny Pulse</h2>
         <p>Para começar, abra uma pasta para usar como Workspace.</p>
         <button className="open-workspace-btn" onClick={openWorkspace}>
           <FolderOpen size={20} />

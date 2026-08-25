@@ -161,8 +161,8 @@ export function Sidebar() {
         >
           <div className="sidebar-request-info">
             <FileJson size={14} />
-            <span className="method-badge" data-method={item.Request.method}>
-              {item.Request.method}
+            <span className="method-badge" data-method={typeof item.Request.method === 'string' ? item.Request.method : 'CUSTOM'}>
+              {typeof item.Request.method === 'string' ? item.Request.method : `CUSTOM (${item.Request.method.CUSTOM})`}
             </span>
             <span className="request-url" title={item.Request.url}>{item.Request.url}</span>
           </div>
@@ -299,8 +299,8 @@ export function Sidebar() {
               >
                 <div className="sidebar-request-info">
                   <Clock size={14} />
-                  <span className="method-badge" data-method={req.method}>
-                    {req.method}
+                  <span className="method-badge" data-method={typeof req.method === 'string' ? req.method : 'CUSTOM'}>
+                    {typeof req.method === 'string' ? req.method : `CUSTOM (${req.method.CUSTOM})`}
                   </span>
                   <span className="request-url" title={req.url}>{req.url}</span>
                 </div>

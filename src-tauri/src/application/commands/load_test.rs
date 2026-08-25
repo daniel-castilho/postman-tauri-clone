@@ -1,7 +1,6 @@
 use crate::domain::models::{HttpRequest, LoadTestConfig, LoadTestReport};
 use crate::application::ports::http_client::HttpClientPort;
 use crate::application::ports::variable_resolver::VariableResolverPort;
-use crate::application::ports::script_runner::ScriptRunnerPort;
 use crate::domain::errors::DomainError;
 use std::sync::Arc;
 use tokio::sync::{Mutex, Semaphore};
@@ -12,16 +11,14 @@ const MAX_CONCURRENT_REQUESTS: usize = 100;
 pub struct LoadTestUseCase {
     http_client: Arc<dyn HttpClientPort>,
     variable_resolver: Arc<dyn VariableResolverPort>,
-    script_runner: Arc<dyn ScriptRunnerPort>,
 }
 
 impl LoadTestUseCase {
     pub fn new(
         http_client: Arc<dyn HttpClientPort>,
         variable_resolver: Arc<dyn VariableResolverPort>,
-        script_runner: Arc<dyn ScriptRunnerPort>,
     ) -> Self {
-        Self { http_client, variable_resolver, script_runner }
+        Self { http_client, variable_resolver }
     }
 
     pub async fn execute(
@@ -72,7 +69,7 @@ impl LoadTestUseCase {
 
                     let resolved_url = resolver.resolve(
                         &active_req.url.0,
-                        &active_env.variables,
+                        &active_env.to_runtime_map(),
                         collection_vars,
                         &active_globs.variables,
                         &sess

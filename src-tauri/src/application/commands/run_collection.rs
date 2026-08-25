@@ -1,6 +1,8 @@
-use crate::domain::models::{CollectionItem, Environment, CollectionRunReport, RequestRunResult};
+use crate::domain::models::{CollectionItem, Environment, GlobalVariables, CollectionRunReport, RequestRunResult};
 use crate::application::commands::send_request::SendRequestUseCase;
 use crate::domain::errors::DomainError;
+
+use std::collections::HashMap;
 
 pub struct RunCollectionUseCase {
     send_request_usecase: SendRequestUseCase,
@@ -11,7 +13,13 @@ impl RunCollectionUseCase {
         Self { send_request_usecase }
     }
 
-    pub async fn execute(&self, items: Vec<CollectionItem>, environment: &Environment) -> Result<CollectionRunReport, DomainError> {
+    pub async fn execute(
+        &self,
+        items: Vec<CollectionItem>,
+        environment: &Environment,
+        globals: &GlobalVariables,
+        session_vars: &HashMap<String, String>,
+    ) -> Result<CollectionRunReport, DomainError> {
         let mut report = CollectionRunReport {
             total_requests: 0,
             total_tests: 0,
@@ -20,20 +28,35 @@ impl RunCollectionUseCase {
         };
 
         let mut current_env = environment.clone();
+        let mut current_globals = globals.clone();
+        let mut current_session = session_vars.clone();
 
         for item in items {
-            self.run_item(item, &mut current_env, &mut report).await?;
+            self.run_item(item, &mut current_env, &mut current_globals, &mut current_session, &mut report).await?;
         }
 
         Ok(report)
     }
 
-    // Usando recursão asíncrona com Box::pin
-    async fn run_item(&self, item: CollectionItem, env: &mut Environment, report: &mut CollectionRunReport) -> Result<(), DomainError> {
+    // Async recursion via Box::pin
+    async fn run_item(
+        &self,
+        item: CollectionItem,
+        env: &mut Environment,
+        globals: &mut GlobalVariables,
+        session_vars: &mut HashMap<String, String>,
+        report: &mut CollectionRunReport,
+    ) -> Result<(), DomainError> {
         match item {
             CollectionItem::Request(req) => {
-                let (resp, updated_env) = self.send_request_usecase.execute(req.clone(), env).await?;
+                let req = *req;
+                let (resp, updated_env, updated_globals, updated_session) = self
+                    .send_request_usecase
+                    .execute(req.clone(), env, globals, session_vars)
+                    .await?;
                 *env = updated_env;
+                *globals = updated_globals;
+                *session_vars = updated_session;
                 
                 let test_count = resp.tests_results.len();
                 let passed_count = resp.tests_results.iter().filter(|t| t.passed).count();
@@ -51,8 +74,8 @@ impl RunCollectionUseCase {
             },
             CollectionItem::Folder { items, .. } => {
                 for sub_item in items {
-                    // Evita recursão infinita e satisfaz o compilador para async recursivo
-                    let fut = self.run_item(sub_item, env, report);
+                    // Avoids infinite recursion and satisfies the compiler for async recursion
+                    let fut = self.run_item(sub_item, env, globals, session_vars, report);
                     Box::pin(fut).await?;
                 }
             }
