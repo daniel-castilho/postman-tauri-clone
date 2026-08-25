@@ -10,3 +10,4 @@ pub mod code_generator;
 pub mod import_port;
 pub mod docs_generator;
 pub mod design_repository;
+pub mod git_repository;

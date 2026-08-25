@@ -54,7 +54,13 @@ src-tauri/target/debug/tyny-cli run src-tauri/tests/fixtures/sample_collection.j
 ```
 Executes a collection without the Tauri GUI over the same application layer used by the desktop app. Exit code contract: `0` all assertions passed, `1` assertion failures, `2` usage/input error, `3` domain error. Reports: JSON envelope (schema version, request/assertion summary, duration) and JUnit XML (`testsuites`/`testsuite`/`testcase`/`failure`). The committed fixture expects the local mock server from `src-tauri/tests/cli_headless.rs`; integration tests cover all three exit paths automatically via `cargo test`.
 
-### 3.5 TypeScript Binding Export & Type-Drift Guard
+### 3.5 Git Adapter Integration Tests
+```bash
+cargo test --test git_adapter --manifest-path src-tauri/Cargo.toml
+```
+Drives `GitProcessAdapter` (system git subprocess) against temporary repositories: status/stage/commit lifecycle, branch creation and checkout, unified diff parsing, non-repository detection and the automatic `.gitignore` security exclusions that keep `*.vault.enc` / `.vault.key` / `.env.local` out of tracked changes. Tests skip gracefully when git is unavailable on the host.
+
+### 3.6 TypeScript Binding Export & Type-Drift Guard
 ```bash
 cargo test export_ts_bindings --manifest-path src-tauri/Cargo.toml
 ```

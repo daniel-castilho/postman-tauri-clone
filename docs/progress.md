@@ -6,6 +6,14 @@ This document is the global state map of the project. Any AI agent taking over t
 
 ---
 
+### Milestones Achieved (Git-Native Interface Complete ✅ - P3 Epic)
+- [x] **`GitRepositoryPort`**: Pure async Rust port (`application/ports/git_repository.rs`) for status, staging, commit, push/pull, branch checkout and file diffs.
+- [x] **`GitProcessAdapter`**: Subprocess-based adapter over the system `git` executable — zero new crates (Rule 5), credentials resolved by the user's own HTTPS helper/SSH agent, all blocking work on `tokio::task::spawn_blocking`.
+- [x] **Security Initializer**: Idempotent `.gitignore` generator keeps `*.vault.enc`, `.vault.key`, `.env.local`, `script-libraries-local.json` out of tracked changes; refreshed on every status read.
+- [x] **IPC Surface**: `git_get_status`, `git_list_branches`, `git_stage_file`, `git_unstage_file`, `git_stage_all`, `git_commit`, `git_push`, `git_pull`, `git_checkout_branch`, `git_get_file_diff`; five Git DTOs exported via the zero type-drift pipeline.
+- [x] **Visual Git Panel** (`src/components/GitPanel/`): branch badge + switcher/creation, ahead/behind counters (↑↓), staged/unstaged lists with status badges, stage-all, commit editor with Ctrl+Enter, unified JSON diff viewer modal; triggered from the sidebar.
+- [x] **Integration Tests**: Real temporary repositories validate lifecycle, vault-file exclusion, unborn-HEAD branches and non-repository workspaces (86 total tests green).
+
 ### Milestones Achieved (Phase 19 Complete ✅ - Advanced Scripting & npm Integration)
 - [x] **`require()` in Sandbox Scripts**: Curated library registry embedded at compile time (`include_str!`) and resolved by a CommonJS-shaped `require('name')` shim inside the QuickJS setup script.
 - [x] **Bundled MIT Libraries**: lodash 4.17.21, dayjs 1.11.13, crypto-js 4.2.0, uuid 8.3.2 (`src-tauri/assets/script-libs/` + THIRD-PARTY-NOTICES.md); each bundle smoke-tested in-sandbox (incl. NIST SHA-256 vector).
@@ -82,4 +90,4 @@ This document is the global state map of the project. Any AI agent taking over t
 * **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
 
 ---
-_Last Updated: August 2026. Phase 19 (Advanced Scripting & npm Integration) completed: `require()` with four bundled MIT libraries and an in-app Package Manager. Next focus: Phase 16 (Advanced Collaboration & Presence)._
+_Last Updated: August 2026. Git-Native Interface (P3) completed: in-app Git panel over `GitRepositoryPort`/`GitProcessAdapter` with secure `.gitignore` generation and typed IPC. Next focus: Phase 16 (Advanced Collaboration & Presence)._

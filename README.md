@@ -39,6 +39,7 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 - 🔐 **Military-Grade Security:** Local secret storage encrypted at rest with AES-256-GCM.
 - 📜 **JavaScript Automation Sandbox:** Execute pre-request logic, post-response assertions, and dynamic environment manipulation using the familiar `pm.*` API powered by QuickJS.
 - 📦 **Script Package Manager:** `require('lodash')`, `require('dayjs')`, `require('crypto-js')` and `require('uuid')` directly inside sandbox scripts — bundled MIT libraries, toggleable per workspace in Workspace Settings.
+- 🌿 **Git-Native Collaboration:** Visual source control panel inside the app — stage, commit, branch, push/pull to any Git remote (GitHub/GitLab/self-hosted) with interactive JSON diffs. Zero proprietary cloud: your repository, your infrastructure.
 - 🚀 **Built-in Load Testing:** Multi-threaded stress testing engine powered by Rust Tokio.
 - 🔄 **Resilient Offline Sync:** Background synchronization queue designed for unstable network conditions.
 - 🧬 **Zero Type-Drift IPC:** Every Tauri command payload is derived from the Rust domain models; TypeScript bindings are generated into `src/types/generated` by `cargo test` and a CI job fails the build if they ever drift.
@@ -270,7 +271,8 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 - [x] AES-256 encrypted local vaults
 - [x] SpecHub OpenAPI 3.0 / 3.1 real-time linter
 - [x] Zero Type-Drift IPC: TypeScript bindings auto-generated from Rust domain models via `ts-rs`, enforced by CI
-- [x] Headless CLI runner (`tyny-pulse run`) with JSON/JUnit reports and CI exit codes
+- [x] Headless CLI runner (`tyny-cli`) with JSON/JUnit reports and CI exit codes
+- [x] Git-native workspace collaboration (in-app panel, diffs, branches, push/pull)
 - [ ] Collection Runner with exportable HTML/Markdown reports
 - [ ] Cloud sync opt-in via `tyny.ca` relay
 

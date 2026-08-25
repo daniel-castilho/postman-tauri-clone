@@ -432,3 +432,54 @@ pub struct ScriptLibraryInfo {
     pub description: String,
     pub enabled: bool,
 }
+
+// --- Git-native interface (P3 epic) ---
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum GitFileStatusType {
+    Untracked,
+    Modified,
+    Added,
+    Deleted,
+    Renamed,
+    Conflicted,
+}
+
+/// One workspace file change as shown in the Git panel. The same relative
+/// path can appear twice when it has both staged and unstaged modifications.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct GitFileChangeDto {
+    pub path: String,
+    pub status: GitFileStatusType,
+    pub is_staged: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct GitStatusSummaryDto {
+    pub is_repository: bool,
+    pub current_branch: String,
+    pub branches: Vec<String>,
+    pub ahead_count: u32,
+    pub behind_count: u32,
+    pub files: Vec<GitFileChangeDto>,
+}
+
+/// One diff hunk line. `change_type` is "add", "delete" or "context".
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct GitDiffChunkDto {
+    pub old_line_number: Option<u32>,
+    pub new_line_number: Option<u32>,
+    pub content: String,
+    pub change_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct GitFileDiffDto {
+    pub path: String,
+    pub chunks: Vec<GitDiffChunkDto>,
+}

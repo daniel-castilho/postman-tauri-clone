@@ -11,3 +11,4 @@ pub mod design_tasks;
 pub mod monitor_tasks;
 pub mod sync_tasks;
 pub mod export_ts_bindings;
+pub mod git_tasks;

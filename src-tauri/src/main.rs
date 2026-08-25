@@ -36,6 +36,7 @@ use application::commands::load_test::LoadTestUseCase;
 use application::commands::monitor_tasks::MonitorUseCase;
 use application::commands::sync_tasks::SyncUseCase;
 use infrastructure::grpc::mock_adapter::MockGrpcClientAdapter;
+use infrastructure::git::git_process_adapter::GitProcessAdapter;
 
 fn main() {
     // Headless mode: recognized CLI subcommands run without booting the
@@ -79,6 +80,8 @@ fn main() {
 
     let design_usecase = DesignUseCase::new(Box::new(FsDesignRepository));
 
+    let git_adapter = Arc::new(GitProcessAdapter::new());
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
@@ -102,6 +105,7 @@ fn main() {
         .manage(monitor_usecase)
         .manage(sync_usecase)
         .manage(design_usecase)
+        .manage(git_adapter)
         .invoke_handler(tauri::generate_handler![
             presentation::commands::send_request,
             presentation::commands::run_collection,
@@ -140,7 +144,17 @@ fn main() {
             presentation::designs::lint_spec,
             presentation::commands::configure_script_engine,
             presentation::commands::list_script_libraries,
-            presentation::commands::set_script_library_enabled
+            presentation::commands::set_script_library_enabled,
+            application::commands::git_tasks::git_get_status,
+            application::commands::git_tasks::git_list_branches,
+            application::commands::git_tasks::git_stage_file,
+            application::commands::git_tasks::git_unstage_file,
+            application::commands::git_tasks::git_stage_all,
+            application::commands::git_tasks::git_commit,
+            application::commands::git_tasks::git_push,
+            application::commands::git_tasks::git_pull,
+            application::commands::git_tasks::git_checkout_branch,
+            application::commands::git_tasks::git_get_file_diff
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

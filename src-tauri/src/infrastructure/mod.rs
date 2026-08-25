@@ -12,3 +12,4 @@ pub mod grpc;
 pub mod security;
 pub mod vault;
 pub mod reporting;
+pub mod git;

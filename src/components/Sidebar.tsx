@@ -1,4 +1,4 @@
-import { Folder, FileJson, PlusCircle, FolderPlus, Trash2, Clock, Copy, Download, Share2, Play, FileUp, BookOpen, Code, Terminal, Activity } from 'lucide-react';
+import { Folder, FileJson, PlusCircle, FolderPlus, Trash2, Clock, Copy, Download, Share2, Play, FileUp, BookOpen, Code, Terminal, Activity, GitBranch } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { invoke } from "@tauri-apps/api/core";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useWorkspaceStore, Collection, CollectionItem } from '../store/workspaceStore';
 import { MockServer } from './MockServer';
 import { MonitorsPanel } from './MonitorsPanel';
+import { GitPanel } from './GitPanel/GitPanel';
 import './Sidebar.css';
 
 export function Sidebar() {
@@ -26,6 +27,7 @@ export function Sidebar() {
   
   const [showDocsModal, setShowDocsModal] = useState(false);
   const [generatedDocs, setGeneratedDocs] = useState("");
+  const [showGitPanel, setShowGitPanel] = useState(false);
 
   const handleAddCollection = () => {
     const name = prompt("Nome da Nova Coleção:");
@@ -232,6 +234,9 @@ export function Sidebar() {
             <button className="add-btn" title="Importar OpenAPI/Swagger" onClick={handleImportOpenApi} style={{ marginLeft: '8px' }}>
               <FileUp size={18} />
             </button>
+            <button className="add-btn" title="Source Control (Git)" onClick={() => setShowGitPanel(true)} style={{ marginLeft: '8px' }}>
+              <GitBranch size={18} />
+            </button>
           </div>
 
           <div className="sidebar-content">
@@ -364,6 +369,9 @@ export function Sidebar() {
             </div>
           </div>
         </div>
+      )}
+      {showGitPanel && workspacePath && (
+        <GitPanel onClose={() => setShowGitPanel(false)} />
       )}
     </aside>
   );

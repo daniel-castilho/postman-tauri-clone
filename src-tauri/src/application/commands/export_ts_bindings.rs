@@ -21,10 +21,11 @@ mod tests {
     use crate::domain::models::{
         Auth, Body, BodyMode, Collection, CollectionItem,
         CollectionRunReport, DesignSpec, Environment, EnvironmentVariable, FormField,
+        GitDiffChunkDto, GitFileChangeDto, GitFileDiffDto, GitFileStatusType, GitStatusSummaryDto,
         GlobalVariables, GrpcConfig, GrpcMetadata, Header, HttpScripts, HttpRequest,
         HttpResponse, HttpMethod, KeyValue, LintIssue, LintSeverity, LoadTestConfig,
         LoadTestReport, MemberRole, MockRule, MockServerStatus, MonitorDefinition,
-        MonitorReport,         RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput, SyncChange,
+        MonitorReport, RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput, SyncChange,
         TestResult, Url, VariableType, WorkspaceBundle, WorkspaceMember,
     };
 
@@ -90,6 +91,13 @@ mod tests {
 
         // Script library registry (Phase 19 Package Manager)
         ScriptLibraryInfo::export_all(&cfg).unwrap();
+
+        // Git-native interface (P3 epic)
+        GitFileStatusType::export_all(&cfg).unwrap();
+        GitFileChangeDto::export_all(&cfg).unwrap();
+        GitStatusSummaryDto::export_all(&cfg).unwrap();
+        GitDiffChunkDto::export_all(&cfg).unwrap();
+        GitFileDiffDto::export_all(&cfg).unwrap();
 
         // SpecHub design & governance linting
         DesignSpec::export_all(&cfg).unwrap();
