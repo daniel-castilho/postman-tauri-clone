@@ -14,12 +14,12 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **New IPC Surface**: `configure_script_engine`, `list_script_libraries`, `set_script_library_enabled`; `ScriptLibraryInfo` binding exported via the zero type-drift pipeline.
 
 ### Milestones Achieved (Phase 18 Complete ✅ - Headless Automation & CLI)
-- [x] **Headless CLI Mode**: `tyny-pulse run <collection.json>` executes collections from the terminal without booting the desktop shell (`presentation/cli.rs` branches before the Tauri builder).
-- [x] **JSON/JUnit Reporting**: Machine-readable reports via `infrastructure/reporting/` (JSON metadata envelope + hand-rolled, XML-escaped JUnit writer) — no new dependencies.
+- [x] **Headless CLI Mode**: `tyny-cli run <collection.json>` executes collections from the terminal without booting the desktop shell (`presentation/cli.rs` branches before the Tauri builder; dedicated `src-tauri/src/bin/tyny-cli.rs` target without the Windows GUI subsystem attribute).
+- [x] **JSON/JUnit Reporting**: Machine-readable reports via `infrastructure/reporting/` (spec §5 envelope: schema version, request/assertion summary, `durationMs`; JUnit XML with `errors`, `classname`, root `time`) — no new dependencies.
 - [x] **Pipeline-Friendly Exit Codes**: 0 = all tests passed, 1 = test failures, 2 = usage/input error, 3 = domain error.
-- [x] **CLI Ergonomics**: `--env`, `--globals`, repeatable `--var key=value` overrides, report format inference from file extension.
-- [x] **GitHub Actions Integration**: Ready-to-copy workflow template in `docs/examples/github-actions-collection-run.yml`; README documents the full CLI contract.
-- [x] **E2E Verified**: Local mock server run validated nested folder traversal, `pm.*` assertions, JUnit output and all three exit code paths.
+- [x] **CLI Ergonomics**: short/long flags (`-e/--env`, `-g/--globals`, `-v/--var key=value`, `-r/--report`, `-f/--format`), report format inference from file extension.
+- [x] **GitHub Actions Integration**: Example workflow at `.github/workflows/tyny-cli-ci.yml` (workflow_dispatch); deterministic fixture at `src-tauri/tests/fixtures/sample_collection.json`.
+- [x] **E2E Verified**: Integration tests spin a local mock HTTP server and validate nested folder traversal, `pm.*` assertions, both report writers and all exit code paths; the desktop `tyny-pulse` binary keeps full CLI parity.
 
 ---
 

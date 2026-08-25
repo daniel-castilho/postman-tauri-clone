@@ -1,133 +1,187 @@
-# Headless Automation & CLI — Spec (Phase 18)
+# Technical Specification — Headless CLI Runner (`tyny-cli`) (P2)
 
-**Companions:** `headless-cli-backlog.md`
-**Epic Goal:** Run collections and test suites straight from the terminal so Tyny Pulse fits automated pipelines (CI/CD) without opening the desktop UI.
+**Status:** Draft for Implementation  
+**Epic Focus:** Native Rust command-line collection execution engine with JSON & JUnit XML reporting  
+**Companions:** `headless-cli-backlog.md` · `headless-cli-implementation-sequence.md` · `ai-software-engineer-prompt-headless-cli.md`
 
-**Version basis:** `tyny-pulse 0.1.0`
-
----
-
-## 1. Problem Statement
-
-All request execution currently lives behind the Tauri IPC boundary: the binary always boots the desktop shell (`tauri::Builder`) and every workflow requires manual interaction. There is no way to:
-
-1. Execute a collection unattended (nightly smoke tests, pre-deploy checks).
-2. Emit machine-readable reports consumable by CI systems.
-3. Fail a pipeline step when API assertions break.
+**Official Domain:** [https://tyny.ca](https://tyny.ca) | **App ID:** `ca.tyny.pulse`
 
 ---
 
-## 2. Solution Overview
+## 1. Purpose & Scope
 
-Add a **headless execution mode** to the existing binary. When the first CLI argument is a recognized subcommand, `main()` branches *before* the Tauri builder starts: the process never creates a window, wires the same infrastructure adapters manually, drives the existing `RunCollectionUseCase`, prints a human summary to stdout, optionally writes machine-readable reports, and exits with a pipeline-friendly status code.
+Provide a lightweight, high-performance, headless CLI execution engine for **Tyny Pulse** that allows developers to run collection test suites, evaluate JavaScript assertions, and output standardized CI/CD test reports in terminal environments without needing a GUI desktop session.
 
-Clean-Architecture payoff: application services and ports have zero Tauri coupling, so the CLI is just one more thin presentation adapter next to the Tauri command handlers.
+### In Scope (P2)
+- Command-line argument parser & dispatcher in `src-tauri/src/presentation/cli.rs`.
+- Subcommand interface: `tyny-cli run <collection_path.json>` with optional flags.
+- Support for CLI flags:
+  - `--env <path>` / `-e`: Path to environment variables JSON file.
+  - `--globals <path>` / `-g`: Path to global variables JSON file.
+  - `--var <key=value>` / `-v`: Overriding variable key-value pairs (repeatable).
+  - `--report <path>` / `-r`: Output file path for test report.
+  - `--format <json|junit>` / `-f`: Report format (defaults based on file extension `.xml` / `.json`).
+- Headless execution over existing application services (`RunCollectionUseCase`).
+- Report generation:
+  - **JSON Report:** Complete execution metadata envelope including requests, responses, script logs, and assertions.
+  - **JUnit XML Report:** XML schema compatible with CI/CD test visualizers (GitHub Actions, GitLab CI, Jenkins).
+- Standardized process exit codes (`0`, `1`, `2`, `3`).
+- Documentation & CI pipeline templates.
 
-```text
-terminal ──> presentation::cli (parse args, orchestrate)
-                 | reuses
-                 v
-     application::commands::run_collection::RunCollectionUseCase
-                 | drives
-                 v
- ReqwestHttpClientAdapter . RealVariableResolver . QuickJsScriptRunner
+### Out of Scope
+- Full interactive TUI (Terminal User Interface) with ncurses/ratatui.
+- Real-time cloud telemetry streaming.
+- Executing GUI desktop commands in CLI mode.
+
+---
+
+## 2. Architecture & Headless Execution Flow
+
+```
+                                  COMMAND LINE ARGS
+                                          │
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │   presentation/cli.rs Dispatch  │
+                         └────────────────┬────────────────┘
+                                          │
+                        ┌─────────────────┴─────────────────┐
+                        │ Is CLI subcommand (e.g. `run`)?  │
+                        └────────┬───────────────────┬──────┘
+                                 │ YES               │ NO
+                                 ▼                   ▼
+                  ┌─────────────────────────────┐ ┌──────────────────────────┐
+                  │ Headless CLI Execution Mode │ │  Launch Tauri Desktop    │
+                  └──────────────┬──────────────┘ │  App GUI (main.rs)       │
+                                 │                └──────────────────────────┘
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │     Application Layer       │
+                  │  (RunCollectionUseCase)     │
+                  └──────────────┬──────────────┘
+                                 │
+                 ┌───────────────┴───────────────┐
+                 ▼                               ▼
+   ┌──────────────────────────┐    ┌──────────────────────────┐
+   │   Reqwest HTTP Adapter   │    │  QuickJS Sandbox Engine  │
+   └─────────────┬────────────┘    └─────────────┬────────────┘
+                 │                               │
+                 └───────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │    infrastructure/reporting │
+                  │     (JSON / JUnit XML)      │
+                  └──────────────┬──────────────┘
+                                 │
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │    Process Exit Code        │
+                  │  (0 = Pass, 1 = Fail, ...)  │
+                  └─────────────────────────────┘
 ```
 
 ---
 
-## 3. Command-Line Contract
+## 3. CLI Command & Flag Specification
 
-```text
-tyny-pulse run <collection.json> [options]
-
-Options:
-  --env <path>          Environment JSON file to load (optional)
-  --globals <path>      Global variables JSON file to load (optional)
-  --var <key=value>     Override/inject an environment variable (repeatable)
-  --report <path>       Write a report file (extension decides writer)
-  --format <json|junit> Explicit report format when --report has no known
-                        extension (default: inferred, fallback json)
-  -h, --help            Print usage and exit 0
-  -V, --version         Print version and exit 0
+### Command Syntax
+```bash
+tyny-cli run <COLLECTION_PATH> [OPTIONS]
 ```
 
-### Input files
+### Flags & Options
+| Flag (Short / Long) | Type | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `-e`, `--env <PATH>` | String | Path to workspace environment JSON file | Optional |
+| `-g`, `--globals <PATH>` | String | Path to global variables JSON file | Optional |
+| `-v`, `--var <KEY=VALUE>` | String (Repeatable) | Variable overrides (e.g. `-v baseUrl=https://api.tyny.ca`) | Optional |
+| `-r`, `--report <PATH>` | String | Output report destination file path | Optional |
+| `-f`, `--format <FORMAT>` | Enum (`json`, `junit`) | Report output format | Inferred from file extension |
+| `-h`, `--help` | Flag | Output CLI help information | N/A |
+| `-V`, `--version` | Flag | Output version information | N/A |
 
-| File | Shape | Producer |
-| :--- | :--- | :--- |
-| Collection JSON | `domain::models::Collection` | App export / `export_workspace` |
-| Environment JSON | `domain::models::Environment` | App environments storage |
-| Globals JSON | `domain::models::GlobalVariables` | App globals storage |
+### Example CLI Usage
+```bash
+# Basic execution
+tyny-cli run ./collections/auth_suite.json
 
-Inputs deserialize with plain `serde_json` — no new file formats are introduced. `--var` overrides are applied onto the environment runtime map after loading (creating entries when unknown), matching `Environment::apply_runtime_map`.
-
-### Exit codes
-
-| Code | Meaning |
-| :--- | :--- |
-| `0` | Run finished; all tests passed |
-| `1` | Run finished; at least one test failed |
-| `2` | Usage or input error (bad flags, unreadable/malformed JSON) |
-| `3` | Domain/runtime error surfaced by a use case |
+# Execution with environment, CLI variable override, and JUnit report
+tyny-cli run ./collections/auth_suite.json \
+  --env ./environments/staging.json \
+  --var baseUrl=https://staging.tyny.ca \
+  --report ./reports/results.xml \
+  --format junit
+```
 
 ---
 
-## 4. Reports
+## 4. Exit Code Contract
 
-### 4.1 JSON
+| Code | Meaning | Condition |
+| :-: | :--- | :--- |
+| **`0`** | **SUCCESS** | All requests completed and 100% of test assertions passed. |
+| **`1`** | **TEST_FAILURE** | Collection executed successfully, but 1 or more test assertions failed. |
+| **`2`** | **USAGE_ERROR** | Invalid CLI arguments, non-existent input files, or invalid JSON syntax. |
+| **`3`** | **EXECUTION_ERROR** | Unhandled domain error, network connectivity failure, or QuickJS panic. |
 
-Envelope wrapping the existing `CollectionRunReport` contract plus run metadata:
+---
 
+## 5. Report Specifications
+
+### 5.1 JSON Report Structure
+Full execution snapshot serialized as JSON:
 ```json
 {
-  "tool": "tyny-pulse",
-  "version": "0.1.0",
-  "generatedAt": "<RFC3339>",
-  "collection": "<name>",
-  "summary": { "totalRequests": 12, "totalTests": 30, "passedTests": 29, "failedTests": 1 },
-  "results": [ /* RequestRunResult[] unchanged */ ]
+  "version": "1.0",
+  "summary": {
+    "totalRequests": 10,
+    "passedRequests": 9,
+    "failedRequests": 1,
+    "totalAssertions": 25,
+    "passedAssertions": 24,
+    "failedAssertions": 1,
+    "durationMs": 1420
+  },
+  "results": [...]
 }
 ```
 
-### 4.2 JUnit XML
-
-Hand-rolled writer (no new dependencies). Mapping:
-
-| JUnit element | Source |
-| :--- | :--- |
-| `<testsuites>` | Whole run |
-| `<testsuite name="request" tests failures>` | Each `RequestRunResult` |
-| `<testcase name>` | Each `TestResult` |
-| `<failure message>` | `TestResult.error` when `passed == false` |
-
-All text nodes/values are XML-escaped (`& < > " '`).
-
-Report writers live in `infrastructure/reporting/` as pure functions over domain types, unit-tested without IO.
+### 5.2 JUnit XML Report Structure
+XML compliant with JUnit schema for CI test visualizers:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Tyny Pulse Collection Run" tests="25" failures="1" errors="0" time="1.420">
+  <testsuite name="Authentication Flow" tests="3" failures="0" errors="0" time="0.210">
+    <testcase name="Status code is 200 OK" classname="Auth.Login" time="0.085"/>
+    <testcase name="Returns valid JWT token" classname="Auth.Login" time="0.085"/>
+  </testsuite>
+</testsuites>
+```
 
 ---
 
-## 5. Architecture Placement
+## 6. Testing & Validation Requirements
 
-| Concern | Module |
-| :--- | :--- |
-| Arg parsing + orchestration + stdout summary + exit policy | `src-tauri/src/presentation/cli.rs` (pure logic unit-tested; no Tauri imports) |
-| Report writers (JSON envelope, JUnit XML) | `src-tauri/src/infrastructure/reporting/` |
-| Branch point | `main()`: subcommand present → tokio runtime + headless path → `std::process::exit(code)`; otherwise GUI as today |
-
-Dependency rule holds: `presentation/cli.rs` touches only `application` + `domain`; `infrastructure/reporting` touches only `domain`.
+1. **CLI Argument Unit Tests:** Test flag parsing (`--env`, `--var`, `--report`, `--format`) in `presentation/cli.rs`.
+2. **Headless Execution Test:** Execute collections headlessly against a mock HTTP server without initializing Tauri Webview windows.
+3. **Reporter Validation Tests:** Verify JSON envelope validity and JUnit XML syntax correctness.
+4. **Exit Code Tests:** Assert process exit codes `0`, `1`, `2`, `3` across appropriate test scenarios.
 
 ---
 
-## 6. Non-Goals (this phase)
+## 7. Definition of Done
 
-- No watch/re-run loop, no parallel collection shards.
-- No new binary target yet (single binary keeps distribution simple).
-- gRPC requests still hit the mock client adapter (existing tech debt).
-- No secret-vault decryption in CLI mode (secrets stay app-scope for now).
+- [x] CLI subcommand dispatcher implemented in `src-tauri/src/presentation/cli.rs`.
+- [x] Application layer `RunCollectionUseCase` executed headlessly without Tauri Webview.
+- [x] JSON and JUnit XML reporters implemented in `src-tauri/src/infrastructure/reporting/`.
+- [x] Process exit codes (`0`, `1`, `2`, `3`) verified.
+- [x] GitHub Actions CI integration template shipped in `.github/workflows/tyny-cli-ci.yml`.
+- [x] Both `cargo test` and `npm run build` pass 100% green.
 
----
+## 8. Implementation Notes (as-built)
 
-## 7. Known Limitations / Deferred Debt
-
-1. **Windows GUI subsystem:** release builds set `windows_subsystem = "windows"`, so stdout may not attach when invoked from some Windows shells. Mitigation deferred: a future dedicated `tyny-pulse-cli` bin target without that attribute (tracked in AGENTS.md debt matrix).
-2. **No `clap`:** arg parsing is hand-rolled std-only to respect the no-new-dependencies rule; revisit if the surface grows beyond Phase 18 scope.
+- The dedicated binary lives at `src-tauri/src/bin/tyny-cli.rs` and consumes the library crate (`tyny_pulse_lib`), guaranteeing execution parity with the desktop app while avoiding the GUI subsystem attribute on Windows release builds.
+- The desktop `tyny-pulse` binary keeps full CLI parity in debug builds via the same `is_cli_mode()` / `run_headless()` entry points.
+- JSON reports include additive metadata fields (`tool`, `generatedAt`, `collection`) alongside the spec §5.1 contract; consumers relying on documented keys are unaffected.
+- A request counts as "passed" in `passedRequests` when none of its assertions failed (requests without scripts count as passed).

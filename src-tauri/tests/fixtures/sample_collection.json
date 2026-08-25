@@ -1,0 +1,26 @@
+{
+  "id": "sample-collection",
+  "name": "Sample Collection",
+  "description": "Deterministic fixture for headless CLI smoke tests. Expects the local mock server (see tests/cli_headless.rs and .github/workflows/tyny-cli-ci.yml) serving GET /health -> 200 on port 8899.",
+  "variables": {},
+  "items": [
+    {
+      "Request": {
+        "id": "req-health",
+        "name": "health check",
+        "description": null,
+        "method": "GET",
+        "url": "http://127.0.0.1:8899/health",
+        "headers": [],
+        "body": null,
+        "auth": null,
+        "variables": {},
+        "scripts": {
+          "preRequest": "",
+          "tests": "pm.test('status is 200', function() { if (pm.response.status !== 200) throw new Error('expected 200, got ' + pm.response.status); }); pm.test('body reports ok', function() { if (pm.response.text().indexOf('ok') === -1) throw new Error('missing ok in body'); });"
+        },
+        "grpc_config": null
+      }
+    }
+  ]
+}

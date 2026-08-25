@@ -1,2 +1,2 @@
-pub mod json_report;
-pub mod junit;
+pub mod json_reporter;
+pub mod junit_reporter;

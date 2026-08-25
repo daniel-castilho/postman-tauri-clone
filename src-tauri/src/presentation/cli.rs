@@ -5,7 +5,7 @@ use crate::domain::models::{Collection, CollectionRunReport, Environment, Global
 use crate::infrastructure::environment::variable_resolver_adapter::RealVariableResolver;
 use crate::infrastructure::grpc::mock_adapter::MockGrpcClientAdapter;
 use crate::infrastructure::http::reqwest_adapter::ReqwestHttpClientAdapter;
-use crate::infrastructure::reporting::{json_report, junit};
+use crate::infrastructure::reporting::{json_reporter, junit_reporter};
 use crate::infrastructure::scripting::quickjs_runner::QuickJsScriptRunner;
 
 use std::collections::HashMap;
@@ -14,16 +14,16 @@ use std::sync::Arc;
 pub const USAGE: &str = "Tyny Pulse - local-first API client
 
 USAGE:
-    tyny-pulse run <collection.json> [OPTIONS]
+    tyny-cli run <collection.json> [OPTIONS]
 
 OPTIONS:
-    --env <path>          Environment JSON file to load
-    --globals <path>      Global variables JSON file to load
-    --var <key=value>     Override/inject an environment variable (repeatable)
-    --report <path>       Write a report file (.json / .xml / .junit)
-    --format <json|junit> Explicit report format when the extension is unknown
-    -h, --help            Print this help and exit
-    -V, --version         Print version and exit
+    -e, --env <path>          Environment JSON file to load
+    -g, --globals <path>      Global variables JSON file to load
+    -v, --var <key=value>     Override/inject an environment variable (repeatable)
+    -r, --report <path>       Write a report file (.json / .xml / .junit)
+    -f, --format <json|junit> Explicit report format when the extension is unknown
+    -h, --help                Print this help and exit
+    -V, --version             Print version and exit
 
 EXIT CODES:
     0  all tests passed
@@ -67,13 +67,55 @@ pub enum CliInvocation {
 
 /// Returns the headless invocation encoded in `argv`, or `None` when the
 /// arguments do not target CLI mode (the GUI shell starts instead).
-pub fn headless_command(argv: &[String]) -> Option<CliInvocation> {
+fn cli_invocation(argv: &[String]) -> Option<CliInvocation> {
     let first = argv.get(1)?;
     match first.as_str() {
         "-h" | "--help" => Some(CliInvocation::Help),
         "-V" | "--version" => Some(CliInvocation::Version),
         "run" => Some(CliInvocation::Run(parse_run_args(&argv[2..]))),
         _ => None,
+    }
+}
+
+/// True when `argv` targets a headless CLI subcommand; the process must
+/// bypass the Tauri GUI builder entirely in that case.
+pub fn is_cli_mode(argv: &[String]) -> bool {
+    cli_invocation(argv).is_some()
+}
+
+/// Executes the headless CLI flow end-to-end and returns the process exit
+/// code (0 pass / 1 test failures / 2 usage-input / 3 domain error).
+pub fn run_headless(argv: &[String]) -> i32 {
+    match cli_invocation(argv) {
+        None => 2,
+        Some(CliInvocation::Help) => {
+            println!("{}", USAGE);
+            0
+        }
+        Some(CliInvocation::Version) => {
+            println!("tyny-cli {}", env!("CARGO_PKG_VERSION"));
+            0
+        }
+        Some(CliInvocation::Run(Err(message))) => {
+            eprintln!("error: {}", message);
+            2
+        }
+        Some(CliInvocation::Run(Ok(options))) => {
+            let runtime = match tokio::runtime::Runtime::new() {
+                Ok(runtime) => runtime,
+                Err(error) => {
+                    eprintln!("error: cannot start async runtime: {}", error);
+                    return 3;
+                }
+            };
+            match runtime.block_on(execute_run(&options)) {
+                Ok(code) => code,
+                Err(failure) => {
+                    eprintln!("error: {}", failure.message());
+                    failure.exit_code()
+                }
+            }
+        }
     }
 }
 
@@ -89,17 +131,17 @@ pub fn parse_run_args(arguments: &[String]) -> Result<RunOptions, String> {
     while index < arguments.len() {
         let argument = arguments[index].as_str();
         match argument {
-            "--env" => environment_path = Some(next_value(arguments, &mut index, "--env")?),
-            "--globals" => globals_path = Some(next_value(arguments, &mut index, "--globals")?),
-            "--var" => {
+            "--env" | "-e" => environment_path = Some(next_value(arguments, &mut index, "--env")?),
+            "--globals" | "-g" => globals_path = Some(next_value(arguments, &mut index, "--globals")?),
+            "--var" | "-v" => {
                 let pair = next_value(arguments, &mut index, "--var")?;
                 let (key, value) = pair
                     .split_once('=')
                     .ok_or_else(|| format!("--var expects <key=value>, got '{}'", pair))?;
                 var_overrides.push((key.to_string(), value.to_string()));
             }
-            "--report" => report_path = Some(next_value(arguments, &mut index, "--report")?),
-            "--format" => {
+            "--report" | "-r" => report_path = Some(next_value(arguments, &mut index, "--report")?),
+            "--format" | "-f" => {
                 let value = next_value(arguments, &mut index, "--format")?;
                 format_override = Some(match value.as_str() {
                     "json" => ReportFormat::Json,
@@ -273,18 +315,20 @@ pub async fn execute_run(options: &RunOptions) -> Result<i32, HeadlessError> {
         SendRequestUseCase::new(http_client, grpc_client, variable_resolver, script_runner);
     let run_collection_usecase = RunCollectionUseCase::new(send_request_usecase);
 
+    let started_at = std::time::Instant::now();
     let report = run_collection_usecase
         .execute(collection.items, &environment, &globals, &HashMap::new())
         .await
         .map_err(HeadlessError::Domain)?;
+    let duration_ms = started_at.elapsed().as_millis() as u64;
 
     println!("{}", render_summary(&collection_name, &report));
 
     if let Some(report_path) = &options.report_path {
         let format = resolve_report_format(report_path, options.format_override);
         let contents = match format {
-            ReportFormat::Json => json_report::render_json(&collection_name, &report),
-            ReportFormat::JUnit => junit::render_junit(&collection_name, &report),
+            ReportFormat::Json => json_reporter::render_json(&collection_name, &report, duration_ms),
+            ReportFormat::JUnit => junit_reporter::render_junit(&collection_name, &report, duration_ms),
         };
         std::fs::write(report_path, contents).map_err(|error| {
             HeadlessError::Io(format!("cannot write report '{}': {}", report_path, error))
@@ -293,41 +337,6 @@ pub async fn execute_run(options: &RunOptions) -> Result<i32, HeadlessError> {
     }
 
     Ok(exit_code_for_report(&report))
-}
-
-/// Handles a detected CLI invocation entirely in-process and returns the
-/// process exit code.
-pub fn invoke(invocation: CliInvocation) -> i32 {
-    match invocation {
-        CliInvocation::Help => {
-            println!("{}", USAGE);
-            0
-        }
-        CliInvocation::Version => {
-            println!("tyny-pulse {}", env!("CARGO_PKG_VERSION"));
-            0
-        }
-        CliInvocation::Run(Err(message)) => {
-            eprintln!("error: {}", message);
-            2
-        }
-        CliInvocation::Run(Ok(options)) => {
-            let runtime = match tokio::runtime::Runtime::new() {
-                Ok(runtime) => runtime,
-                Err(error) => {
-                    eprintln!("error: cannot start async runtime: {}", error);
-                    return 3;
-                }
-            };
-            match runtime.block_on(execute_run(&options)) {
-                Ok(code) => code,
-                Err(failure) => {
-                    eprintln!("error: {}", failure.message());
-                    failure.exit_code()
-                }
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -372,19 +381,40 @@ mod tests {
     }
 
     #[test]
-    fn detects_headless_dispatch_only_for_known_tokens() {
-        assert!(matches!(
-            headless_command(&args(&["tyny-pulse", "--help"])),
-            Some(CliInvocation::Help)
-        ));
-        assert!(matches!(
-            headless_command(&args(&["tyny-pulse", "-V"])),
-            Some(CliInvocation::Version)
-        ));
-        assert!(headless_command(&args(&["tyny-pulse", "run", "c.json"])).is_some());
+    fn detects_cli_mode_only_for_known_tokens() {
+        assert!(is_cli_mode(&args(&["tyny-cli", "--help"])));
+        assert!(is_cli_mode(&args(&["tyny-cli", "-V"])));
+        assert!(is_cli_mode(&args(&["tyny-cli", "run", "c.json"])));
         // File associations / stray arguments must still open the GUI.
-        assert!(headless_command(&args(&["tyny-pulse"])).is_none());
-        assert!(headless_command(&args(&["tyny-pulse", "/path/to/file.json"])).is_none());
+        assert!(!is_cli_mode(&args(&["tyny-cli"])));
+        assert!(!is_cli_mode(&args(&["tyny-cli", "/path/to/file.json"])));
+    }
+
+    #[test]
+    fn parses_short_flag_aliases() {
+        let parsed = parse_run_args(&args(&[
+            "collection.json",
+            "-e",
+            "prod.json",
+            "-g",
+            "g.json",
+            "-v",
+            "host=api.tyny.ca",
+            "-r",
+            "out.junit",
+            "-f",
+            "junit",
+        ]))
+        .expect("valid short-flag invocation");
+        assert_eq!(parsed.collection_path, "collection.json");
+        assert_eq!(parsed.environment_path.as_deref(), Some("prod.json"));
+        assert_eq!(parsed.globals_path.as_deref(), Some("g.json"));
+        assert_eq!(
+            parsed.var_overrides,
+            vec![("host".to_string(), "api.tyny.ca".to_string())]
+        );
+        assert_eq!(parsed.report_path.as_deref(), Some("out.junit"));
+        assert_eq!(parsed.format_override, Some(ReportFormat::JUnit));
     }
 
     #[test]

@@ -1,0 +1,79 @@
+# Example pipeline: run Tyny Pulse collections headlessly in CI/CD.
+#
+# Triggered manually (workflow_dispatch) to demonstrate the `tyny-cli`
+# runner; copy it into your own repository and adapt the paths.
+#
+# The CLI binary exits non-zero when any test assertion fails, so this
+# job fails automatically on regressions. report.junit uploads as an
+# artifact and is consumable by any JUnit-compatible reporter.
+
+name: Tyny CLI Collection Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  headless-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend bundle
+        run: npm run build
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build tyny-cli
+        working-directory: src-tauri
+        run: cargo build --release --bin tyny-cli
+
+      - name: Start local mock API
+        run: |
+          cat > /tmp/mock_api.py <<'PY'
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          import json
+
+          class Handler(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  if self.path == '/health':
+                      body = json.dumps({'status': 'ok'}).encode()
+                      self.send_response(200)
+                      self.send_header('Content-Type', 'application/json')
+                      self.end_headers()
+                      self.wfile.write(body)
+                  else:
+                      self.send_response(500)
+                      self.end_headers()
+                      self.wfile.write(b'boom')
+
+              def log_message(self, *args):
+                  pass
+
+          HTTPServer(('127.0.0.1', 8899), Handler).serve_forever()
+          PY
+          python3 /tmp/mock_api.py &
+
+      - name: Run collection headlessly
+        run: |
+          src-tauri/target/release/tyny-cli run \
+            src-tauri/tests/fixtures/sample_collection.json \
+            --report target/report.junit
+
+      - name: Show JUnit report
+        run: cat target/report.junit
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyny-cli-report
+          path: target/report.junit

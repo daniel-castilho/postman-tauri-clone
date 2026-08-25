@@ -303,7 +303,7 @@ mod tests {
     #[test]
     fn require_resolves_bundled_library_inside_test_script() {
         let runner = QuickJsScriptRunner::new();
-        let mut env = std::collections::HashMap::new();
+        let env = std::collections::HashMap::new();
         let script = r#"
             var _ = require('lodash');
             var crypto = require('crypto-js');
@@ -324,7 +324,7 @@ mod tests {
     #[test]
     fn unknown_module_inside_test_is_reported() {
         let runner = QuickJsScriptRunner::new();
-        let mut env = std::collections::HashMap::new();
+        let env = std::collections::HashMap::new();
         let script = r#"
             pm.test('uses missing module', function() {
                 require('not-a-real-module');
@@ -359,7 +359,7 @@ mod tests {
         let runner = QuickJsScriptRunner::new();
         runner.set_settings_dir(Some(workspace_dir.to_string_lossy().to_string()));
 
-        let mut env = std::collections::HashMap::new();
+        let env = std::collections::HashMap::new();
         let script = r#"
             pm.test('dayjs still available', function() {
                 if (typeof require('dayjs') !== 'function') throw new Error('dayjs missing');

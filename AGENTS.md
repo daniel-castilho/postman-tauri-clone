@@ -158,7 +158,7 @@ Items currently deferred or awaiting optimization. Do **not** silently introduce
 4. **Manual Binding Registration:** New IPC types must be added to the export list in `src-tauri/src/application/commands/export_ts_bindings.rs`; consider automating via a proc-macro or build script inventory.
 5. **UI Strings Still Portuguese:** The Rule 6 English-only sweep covered all code comments; user-facing UI strings in React components and AI prompt strings in `gemini_adapter.rs` remain Portuguese pending a product-copy decision.
 6. **Loose `any` Types at Store Edge:** `workspaceStore.ts` still uses `(state: any)` / `(c: any)` casts inside Zustand setters and event listeners; typing these against generated contracts is incremental follow-up work.
-7. **CLI stdout on Windows Release Builds:** The binary sets `windows_subsystem = "windows"`, so headless CLI output may not attach to some Windows shells in release builds. Mitigation deferred: a dedicated `tyny-pulse-cli` bin target without the GUI subsystem attribute (see `tasks/headless-cli-spec.md`, section 7).
+7. **CLI stdout on Windows Release Builds:** Resolved by the dedicated `tyny-cli` bin target (`src-tauri/src/bin/tyny-cli.rs`), which carries no `windows_subsystem` attribute; the desktop `tyny-pulse` binary keeps GUI subsystem semantics and CLI parity in debug builds.
 
 ---
 

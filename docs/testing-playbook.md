@@ -47,7 +47,14 @@ cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 npm run build
 ```
 
-### 3.4 TypeScript Binding Export & Type-Drift Guard
+### 3.4 Headless CLI Runner (`tyny-cli`)
+```bash
+cargo build --manifest-path src-tauri/Cargo.toml --bin tyny-cli
+src-tauri/target/debug/tyny-cli run src-tauri/tests/fixtures/sample_collection.json --report target/report.junit
+```
+Executes a collection without the Tauri GUI over the same application layer used by the desktop app. Exit code contract: `0` all assertions passed, `1` assertion failures, `2` usage/input error, `3` domain error. Reports: JSON envelope (schema version, request/assertion summary, duration) and JUnit XML (`testsuites`/`testsuite`/`testcase`/`failure`). The committed fixture expects the local mock server from `src-tauri/tests/cli_headless.rs`; integration tests cover all three exit paths automatically via `cargo test`.
+
+### 3.5 TypeScript Binding Export & Type-Drift Guard
 ```bash
 cargo test export_ts_bindings --manifest-path src-tauri/Cargo.toml
 ```
@@ -57,7 +64,6 @@ CI (`.github/workflows/ci.yml`) re-runs this export and fails when `git status -
 ```bash
 cd src-tauri && cargo test export_ts_bindings
 ```
-
 ---
 
 ## 4. Mandatory Patterns & Rules

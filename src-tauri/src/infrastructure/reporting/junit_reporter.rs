@@ -22,23 +22,25 @@ fn seconds_from_ms(time_ms: u64) -> String {
     format!("{:.3}", time_ms as f64 / 1000.0)
 }
 
-/// Renders a `CollectionRunReport` as a JUnit XML document:
-/// one `<testsuite>` per request, one `<testcase>` per test.
-pub fn render_junit(collection_name: &str, report: &CollectionRunReport) -> String {
+/// Renders a `CollectionRunReport` as JUnit XML compatible with CI test
+/// visualizers (GitHub Actions, GitLab CI, Jenkins): one `<testsuite>` per
+/// request, one `<testcase>` per assertion, `<failure>` nodes for errors.
+pub fn render_junit(collection_name: &str, report: &CollectionRunReport, duration_ms: u64) -> String {
     let failed_tests = report.total_tests - report.passed_tests;
     let mut xml = String::new();
     xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     xml.push_str(&format!(
-        "<testsuites name=\"{}\" tests=\"{}\" failures=\"{}\">\n",
+        "<testsuites name=\"{}\" tests=\"{}\" failures=\"{}\" errors=\"0\" time=\"{}\">\n",
         escape_xml(collection_name),
         report.total_tests,
-        failed_tests
+        failed_tests,
+        seconds_from_ms(duration_ms)
     ));
 
     for result in &report.results {
         let suite_failures = result.tests.iter().filter(|test| !test.passed).count();
         xml.push_str(&format!(
-            "  <testsuite name=\"{}\" tests=\"{}\" failures=\"{}\" time=\"{}\">\n",
+            "  <testsuite name=\"{}\" tests=\"{}\" failures=\"{}\" errors=\"0\" time=\"{}\">\n",
             escape_xml(&result.request_name),
             result.tests.len(),
             suite_failures,
@@ -46,11 +48,18 @@ pub fn render_junit(collection_name: &str, report: &CollectionRunReport) -> Stri
         ));
         for test in &result.tests {
             if test.passed {
-                xml.push_str(&format!("    <testcase name=\"{}\" />\n", escape_xml(&test.name)));
+                xml.push_str(&format!(
+                    "    <testcase name=\"{}\" classname=\"{}\" time=\"{}\" />\n",
+                    escape_xml(&test.name),
+                    escape_xml(&result.request_name),
+                    seconds_from_ms(result.time_ms)
+                ));
             } else {
                 xml.push_str(&format!(
-                    "    <testcase name=\"{}\">\n      <failure message=\"{}\" />\n    </testcase>\n",
+                    "    <testcase name=\"{}\" classname=\"{}\" time=\"{}\">\n      <failure message=\"{}\" />\n    </testcase>\n",
                     escape_xml(&test.name),
+                    escape_xml(&result.request_name),
+                    seconds_from_ms(result.time_ms),
                     escape_xml(test.error.as_deref().unwrap_or("assertion failed"))
                 ));
             }
@@ -91,12 +100,18 @@ mod tests {
 
     #[test]
     fn junit_maps_requests_to_suites_and_tests_to_cases() {
-        let rendered = render_junit("smoke", &sample_report());
+        let rendered = render_junit("smoke", &sample_report(), 1620);
         assert!(rendered.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-        assert!(rendered.contains("<testsuites name=\"smoke\" tests=\"2\" failures=\"1\">"));
-        assert!(rendered.contains("<testsuite name=\"create &lt;user&gt; &amp; &quot;friends&quot;\" tests=\"2\" failures=\"1\" time=\"1.500\">"));
+        assert!(rendered.contains(
+            "<testsuites name=\"smoke\" tests=\"2\" failures=\"1\" errors=\"0\" time=\"1.620\">"
+        ));
+        assert!(rendered.contains(
+            "<testsuite name=\"create &lt;user&gt; &amp; &quot;friends&quot;\" tests=\"2\" failures=\"1\" errors=\"0\" time=\"1.500\">"
+        ));
+        assert!(rendered.contains(
+            "<testcase name=\"fast\" classname=\"create &lt;user&gt; &amp; &quot;friends&quot;\" time=\"1.500\" />"
+        ));
         assert!(rendered.contains("<failure message=\"expected 201, got &lt;500&gt;\" />"));
-        assert!(rendered.contains("<testcase name=\"fast\" />"));
         assert!(rendered.trim_end().ends_with("</testsuites>"));
     }
 

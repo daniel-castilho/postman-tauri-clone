@@ -1,25 +1,30 @@
-# Headless Automation & CLI — Backlog (Phase 18)
+# Headless CLI Runner (`tyny-cli`) — Backlog (P2)
 
-**Companions:** `headless-cli-spec.md`
-**Epic Goal:** Terminal-driven collection execution with CI-friendly reports and exit codes.
+**Companions:** `headless-cli-spec.md` · `headless-cli-implementation-sequence.md` · `ai-software-engineer-prompt-headless-cli.md`  
+**Epic Goal:** Build a standalone, headless CLI execution engine in Rust that reuses the application layer to execute collections in terminal environments and CI/CD pipelines with JSON and JUnit XML reporting.
 
-**MVP Scope:** Stories S1–S5
+**MVP Scope:** Stories S1–S8
 
 ---
 
 ## Story Map
 
 ```text
-CLI CORE
-S1 Arg parser, help/version text and headless branch in main()
-S2 Input loading (collection/env/globals JSON) with --var overrides
-S3 Execution wiring over RunCollectionUseCase + stdout summary + exit codes
+ARGUMENT PARSING & DISPATCH
+S1 Implement CLI argument parser in presentation/cli.rs
+S2 Wire CLI subcommand interceptor before Tauri GUI initialization
 
-REPORTING
-S4 JSON envelope + JUnit XML report writers (infrastructure/reporting) + unit tests
+HEADLESS CORE EXECUTION
+S3 Adapt RunCollectionUseCase for headless execution over Reqwest and QuickJS
+S4 Implement CLI variable overrides (--var key=value, --env, --globals)
 
-PIPELINE INTEGRATION & DOCS
-S5 GitHub Actions example workflow + docs sync (README, progress, AGENTS)
+REPORTING & OUTPUT
+S5 Implement JSON execution report writer in infrastructure/reporting/
+S6 Implement JUnit XML report writer in infrastructure/reporting/
+
+EXIT CODES & CI INTEGRATION
+S7 Implement standardized process exit codes (0, 1, 2, 3)
+S8 Create GitHub Actions CI template (.github/workflows/tyny-cli-ci.yml)
 ```
 
 ---
@@ -28,20 +33,22 @@ S5 GitHub Actions example workflow + docs sync (README, progress, AGENTS)
 
 | ID | Story Title | Priority | Target Modules / Components | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **S1** ✅ | Arg parser, help/version and headless branch in `main()` | Must | `src-tauri/src/presentation/cli.rs`, `src-tauri/src/main.rs` | Pure std parsing; no new dependencies; subcommand dispatch before Tauri builder |
-| **S2** ✅ | Input loading with `--var` overrides | Must | `presentation/cli.rs` | serde_json from paths; errors map to exit code 2 |
-| **S3** ✅ | Execution wiring + stdout summary + exit codes | Must | `presentation/cli.rs` | Reuse adapters wired in main; PASS/FAIL lines per test; policy 0/1/3 |
-| **S4** ✅ | Report writers + tests | Must | `src-tauri/src/infrastructure/reporting/` | JSON envelope + JUnit XML; XML escaping covered by tests |
-| **S5** ✅ | GitHub Actions template + docs sync | Should | `docs/examples/`, `README.md`, `docs/progress.md`, `AGENTS.md` | Runnable workflow snippet using the binary artifact |
+| **S1** ✅ | Implement CLI argument parser in `presentation/cli.rs` | Must | `src-tauri/src/presentation/cli.rs` | Parse `run`, `--env/-e`, `--globals/-g`, `--var/-v`, `--report/-r`, `--format/-f`, `--help` |
+| **S2** ✅ | Wire CLI subcommand interceptor before Tauri GUI initialization | Must | `src-tauri/src/main.rs` | `is_cli_mode()` + `run_headless()` per implementation sequence Step 2 |
+| **S3** ✅ | Adapt `RunCollectionUseCase` for headless execution over Reqwest & QuickJS | Must | `src-tauri/src/application/services/` | Reused via library crate; zero Webview/Tauri IPC coupling |
+| **S4** ✅ | Implement CLI variable overrides (`--var key=value`, `--env`, `--globals`) | Must | `src-tauri/src/presentation/cli.rs` | Merge environment files with command-line variable overrides |
+| **S5** ✅ | Implement JSON execution report writer in `infrastructure/reporting/` | Must | `src-tauri/src/infrastructure/reporting/json_reporter.rs` | Spec §5.1 envelope: version, request/assertion summary, durationMs |
+| **S6** ✅ | Implement JUnit XML report writer in `infrastructure/reporting/` | Must | `src-tauri/src/infrastructure/reporting/junit_reporter.rs` | testsuites/testsuite/testcase/failure with errors + classname + time |
+| **S7** ✅ | Implement standardized process exit codes (`0`, `1`, `2`, `3`) | Must | `src-tauri/src/presentation/cli.rs` | Covered by integration tests incl. real HTTP mock server |
+| **S8** ✅ | Create GitHub Actions CI template (`.github/workflows/tyny-cli-ci.yml`) | Must | `.github/workflows/tyny-cli-ci.yml`, `README.md` | workflow_dispatch example building tyny-cli and running the fixture |
 
 ---
 
 ## Definition of Done (Epic)
 
-- [x] S1–S5 completed and verified.
-- [x] `tyny-pulse run <collection> --report out.junit` produces valid JUnit XML (escaped, well-formed) — validated against a local mock server E2E run.
-- [x] Exit codes match the spec table (0/1/2/3) — all three paths exercised E2E.
-- [x] `cargo check` and `cargo clippy -- -D warnings` pass without warnings.
-- [x] New unit tests green (`cargo test`, 51 passing); boundary grep still returns 0 matches.
-- [x] `npm run build` unaffected and green.
-- [x] Docs describe the CLI contract accurately (README + progress tracker).
+- [x] S1–S8 completed and verified.
+- [x] Collection execution via CLI completes headlessly in terminal without GUI window.
+- [x] JSON and JUnit XML reports generated accurately.
+- [x] Exit codes (`0`, `1`, `2`, `3`) match the specification contract.
+- [x] Rust unit and integration tests (`cargo test`) pass 100% green (66 unit + 6 integration).
+- [x] Both `cargo test` and `npm run build` pass without warnings or errors.

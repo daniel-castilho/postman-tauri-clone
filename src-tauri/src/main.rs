@@ -41,8 +41,9 @@ fn main() {
     // Headless mode: recognized CLI subcommands run without booting the
     // desktop shell, reusing the same application layer and adapters.
     let argv: Vec<String> = std::env::args().collect();
-    if let Some(invocation) = presentation::cli::headless_command(&argv) {
-        std::process::exit(presentation::cli::invoke(invocation));
+    if presentation::cli::is_cli_mode(&argv) {
+        let exit_code = presentation::cli::run_headless(&argv);
+        std::process::exit(exit_code);
     }
 
     let http_client = Arc::new(ReqwestHttpClientAdapter::new());

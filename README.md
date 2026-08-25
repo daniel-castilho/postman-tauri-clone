@@ -133,31 +133,31 @@ The compiled, native installers (`.exe`, `.msi`, `.dmg`, `.AppImage`, `.deb`) wi
 
 ## CLI Usage
 
-The same binary runs collections headlessly — no window, no GUI dependencies. Perfect for CI/CD pipelines:
+The dedicated `tyny-cli` binary runs collections headlessly — no window, no GUI dependencies, and no Windows GUI-subsystem stdout issues. Perfect for CI/CD pipelines:
 
 ```bash
 # Build once (or use the desktop installer's bundled binary)
-cargo build --release --manifest-path src-tauri/Cargo.toml
+cargo build --release --manifest-path src-tauri/Cargo.toml --bin tyny-cli
 
-BIN=src-tauri/target/release/tyny-pulse
+BIN=src-tauri/target/release/tyny-cli
 
 $BIN run collections/smoke.json \
-    --env environments/staging.json \
-    --var baseUrl=https://staging.api.example.com \
-    --report report.junit
+    -e environments/staging.json \
+    -v baseUrl=https://staging.api.example.com \
+    -r report.junit
 ```
 
 | Flag | Purpose |
 | :--- | :--- |
-| `--env <path>` | Load an environment JSON file |
-| `--globals <path>` | Load global variables JSON |
-| `--var <key=value>` | Override/inject an environment variable (repeatable) |
-| `--report <path>` | Write a report file (`.json` or `.xml`/`.junit` decides the writer) |
-| `--format json\|junit` | Force the writer when the extension is unknown |
+| `-e`, `--env <path>` | Load an environment JSON file |
+| `-g`, `--globals <path>` | Load global variables JSON |
+| `-v`, `--var <key=value>` | Override/inject an environment variable (repeatable) |
+| `-r`, `--report <path>` | Write a report file (`.json` or `.xml`/`.junit` decides the writer) |
+| `-f`, `--format json\|junit` | Force the writer when the extension is unknown |
 
 Exit codes: `0` all tests passed · `1` test failures · `2` usage/input error · `3` domain error.
 
-A ready-to-copy GitHub Actions workflow lives in [`docs/examples/github-actions-collection-run.yml`](docs/examples/github-actions-collection-run.yml).
+A ready-to-copy GitHub Actions workflow lives in [`.github/workflows/tyny-cli-ci.yml`](.github/workflows/tyny-cli-ci.yml), and a deterministic smoke fixture ships at [`src-tauri/tests/fixtures/sample_collection.json`](src-tauri/tests/fixtures/sample_collection.json).
 
 ---
 
