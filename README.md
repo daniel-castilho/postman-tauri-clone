@@ -6,6 +6,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Domain](https://img.shields.io/badge/Domain-tyny.ca-8A2BE2?style=for-the-badge)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 **Tyny Pulse** is an ultra-fast, local-first, cross-platform API client built with **Tauri v2**, **Rust**, and **React 19**. Designed as a lightweight, memory-efficient alternative to traditional resource-heavy API clients, Tyny Pulse delivers a zero-latency desktop experience, multi-protocol execution, built-in OpenAPI SpecHub, AES-256 encrypted local vaults, and Git-native JSON workspaces.
 
@@ -298,5 +299,8 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 | [`AGENTS.md`](AGENTS.md)                             | Guidelines for AI agents and human contributors                   |
 | [`docs/progress.md`](docs/progress.md)               | Feature implementation roadmap & architectural milestones         |
 | [`rename_to_tyny_pulse.sh`](rename_to_tyny_pulse.sh) | Automated script to rename package references across the codebase |
+| [`LICENSE`](LICENSE)                                 | MIT License — full legal text of the project's open-source license |
+
+Tyny Pulse is released under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
 
 Designed & Maintained with ❤️ for [Tyny.ca](https://tyny.ca).
