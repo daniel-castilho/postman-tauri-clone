@@ -1,0 +1,49 @@
+.workspace-selector-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+.workspace-selector-card {
+  background-color: #242424;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid #333;
+}
+
+.workspace-selector-card h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 24px;
+  color: #e0e0e0;
+}
+
+.workspace-selector-card p {
+  margin-bottom: 24px;
+  color: #a0a0a0;
+}
+
+.open-workspace-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #646cff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.open-workspace-btn:hover {
+  background-color: #535bf2;
+}
