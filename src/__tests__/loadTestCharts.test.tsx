@@ -1,20 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MultiLineChart, StatusCodeDonut } from '../components/LoadTestingPanel/LoadTestCharts';
-import type { LatencyPercentilesDto } from '../types/ipc';
-
-function percentiles(overrides: Partial<LatencyPercentilesDto> = {}): LatencyPercentilesDto {
-  return {
-    p50Ms: 10,
-    p90Ms: 20,
-    p95Ms: 30,
-    p99Ms: 40,
-    minMs: 5,
-    maxMs: 50,
-    meanMs: 15,
-    ...overrides,
-  };
-}
 
 describe('MultiLineChart', () => {
   afterEach(cleanup);
@@ -89,7 +75,9 @@ describe('StatusCodeDonut', () => {
       const spans = item.querySelectorAll('span');
       const label = spans[1]?.textContent;
       const value = item.querySelector('strong')?.textContent;
-      if (label && value !== undefined) byLabel.set(label, value);
+      if (label !== null && label !== undefined && value !== null && value !== undefined) {
+        byLabel.set(label, value);
+      }
     });
     expect(byLabel.get('2xx')).toBe('3');
     expect(byLabel.get('3xx')).toBe('1');

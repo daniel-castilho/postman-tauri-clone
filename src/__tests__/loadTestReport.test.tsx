@@ -84,7 +84,7 @@ describe('buildMarkdownReport', () => {
 
 describe('LoadTestReport component', () => {
   let createObjectURLSpy: ReturnType<typeof vi.fn>;
-  let clickSpy: ReturnType<typeof vi.fn>;
+  let clickSpy: ReturnType<typeof vi.fn<() => void>>;
 
   beforeEach(() => {
     createObjectURLSpy = vi.fn(() => 'blob:mock');
