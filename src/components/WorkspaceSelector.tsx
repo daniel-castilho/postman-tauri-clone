@@ -25,7 +25,7 @@ export function WorkspaceSelector() {
               borderRadius: '4px',
             }}
           >
-            Erro: {error}
+            Error: {error}
           </div>
         )}
       </div>

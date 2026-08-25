@@ -14,8 +14,15 @@ export default defineConfig({
       reportsDirectory: './coverage/frontend',
       // Gate the surfaces that have real suites today. Expand `include` as
       // more component tests land; generated IPC bindings stay excluded.
-      // Next increment: src/components/** once render tests exist.
-      include: ['src/lib/**/*.ts', 'src/store/**/*.ts', 'src/hooks/**/*.ts'],
+      // Next increment: remaining components under src/components/**.
+      include: [
+        'src/lib/**/*.ts',
+        'src/store/**/*.ts',
+        'src/hooks/**/*.ts',
+        'src/components/LoadTestingPanel/LoadTestCharts.tsx',
+        'src/components/LoadTestingPanel/LoadTestReport.tsx',
+        'src/components/WorkspaceSelector.tsx',
+      ],
       exclude: ['src/types/generated/**', '**/*.d.ts', 'src/__tests__/**'],
       thresholds: {
         lines: 80,

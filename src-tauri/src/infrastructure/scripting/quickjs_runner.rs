@@ -378,3 +378,140 @@ mod tests {
         std::fs::remove_dir_all(workspace_dir).ok();
     }
 }
+
+#[cfg(test)]
+mod port_tests {
+    use super::*;
+    use crate::application::ports::script_runner::ScriptRunnerPort;
+    use crate::domain::models::{BodyMode, Header, HttpMethod};
+    use std::collections::HashMap;
+
+    fn sample_request() -> HttpRequest {
+        HttpRequest {
+            id: crate::domain::models::RequestId("req_1".into()),
+            name: "Target".into(),
+            method: HttpMethod::GET,
+            url: crate::domain::models::Url("https://api.example.com".into()),
+            description: None,
+            headers: Vec::<Header>::new(),
+            body: Some(crate::domain::models::Body::Raw(
+                "{}".into(),
+                BodyMode::Json,
+            )),
+            auth: None,
+            variables: Default::default(),
+            scripts: None,
+            grpc_config: None,
+        }
+    }
+
+    fn sample_response() -> HttpResponse {
+        HttpResponse {
+            status: 201,
+            status_text: "Created".into(),
+            headers: Vec::new(),
+            body: Some(r#"{"ok": true}"#.into()),
+            time_ms: 12,
+            size_bytes: 13,
+            tests_results: Vec::new(),
+            logs: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn pre_request_mutates_env_session_scopes_and_captures_logs() {
+        let runner = QuickJsScriptRunner::new();
+        let mut request = sample_request();
+        let mut env_vars = HashMap::from([("BASE".to_string(), "http://x".to_string())]);
+        let mut global_vars = HashMap::new();
+        let mut session_vars = HashMap::new();
+
+        let logs = runner
+            .execute_pre_request(
+                "pm.environment.set('TOKEN','abc');\n\
+                 pm.variables.set('sid','s9');\n\
+                 console.log('pre ok', 1 + 1);",
+                &mut request,
+                &mut env_vars,
+                &mut global_vars,
+                &mut session_vars,
+            )
+            .expect("pre-request executes");
+
+        assert_eq!(env_vars.get("TOKEN").map(String::as_str), Some("abc"));
+        assert_eq!(session_vars.get("sid").map(String::as_str), Some("s9"));
+        // Pre-existing values survive the round-trip through the sandbox.
+        assert_eq!(env_vars.get("BASE").map(String::as_str), Some("http://x"));
+        assert!(
+            logs.iter()
+                .any(|log| log.level == "info" && log.content == "pre ok 2"),
+            "expected captured info log, got {logs:?}"
+        );
+    }
+
+    #[test]
+    fn execute_test_reports_passing_failing_tests_and_error_logs() {
+        let runner = QuickJsScriptRunner::new();
+        let response = sample_response();
+        let mut env_vars = HashMap::new();
+        let mut global_vars = HashMap::new();
+        let mut session_vars = HashMap::new();
+
+        let (tests, logs) = runner
+            .execute_test(
+                "pm.test('status is 201', function() {\n\
+                     if (pm.response.status !== 201) throw new Error('bad status');\n\
+                 });\n\
+                 pm.test('payload flag', function() {\n\
+                     if (!pm.response.json().ok) throw new Error('bad payload');\n\
+                 });\n\
+                 pm.test('intentional failure', function() {\n\
+                     throw new Error('boom');\n\
+                 });\n\
+                 console.error('oops');",
+                &response,
+                &mut env_vars,
+                &mut global_vars,
+                &mut session_vars,
+            )
+            .expect("test script executes");
+
+        assert_eq!(tests.len(), 3);
+        assert!(tests[0].passed);
+        assert!(tests[1].passed);
+        assert!(!tests[2].passed);
+        assert!(
+            tests[2].error.as_deref().unwrap_or_default().contains("boom"),
+            "failing test must carry the error message"
+        );
+        assert!(
+            logs.iter()
+                .any(|log| log.level == "error" && log.content == "oops"),
+            "expected captured error log, got {logs:?}"
+        );
+    }
+
+    #[test]
+    fn syntax_errors_surface_as_script_errors_through_the_port() {
+        let runner = QuickJsScriptRunner::new();
+        let mut request = sample_request();
+        let mut env_vars = HashMap::new();
+        let mut global_vars = HashMap::new();
+        let mut session_vars = HashMap::new();
+
+        let result = runner.execute_pre_request(
+            "this is not (( valid javascript",
+            &mut request,
+            &mut env_vars,
+            &mut global_vars,
+            &mut session_vars,
+        );
+
+        match result {
+            Err(DomainError::ScriptError(message)) => {
+                assert!(!message.is_empty());
+            }
+            other => panic!("expected ScriptError, got {other:?}"),
+        }
+    }
+}
