@@ -65,7 +65,7 @@ tyny-pulse/
 | **`domain/`**         | **Pure Rust Only** — No `reqwest`, no `tauri`, no `rquickjs`, no `serde_json` IO, no file system calls. Entities, value objects, and domain error enums are written in pure Rust.                  |
 | **`application/`**    | **Pure Business Logic** — Depends only on `domain` models and `ports/` traits. Imports `serde` for DTO serialization. No `infrastructure` adapters, no `tauri` UI bindings, no raw file system IO. |
 | **`infrastructure/`** | **Full Technology Adapters Allowed** — `reqwest`, `rquickjs`, `aes-gcm`, `tokio`, `std::fs`, `serde_json`. Implements traits defined in `application/ports/` or `domain/`.                         |
-| **`src/` (React)**    | **Presentation Only** — React 19 components, Zustand state, Tailwind CSS, Framer Motion. Uses Tauri `invoke()` exclusively via typed hooks. **No business or encryption logic in React.**          |
+| **`src/` (React)**    | **Presentation Only** — React 19 components, Zustand state, CSS Modules (custom glassmorphism styles), Framer Motion. Uses Tauri `invoke()` exclusively via typed hooks. **No business or encryption logic in React.**          |
 
 Tauri IPC command handlers in `application/commands/` are **thin**: they deserialize IPC JSON payloads, delegate execution to an application service (`*Service`), and map the result back to an IPC DTO response.
 

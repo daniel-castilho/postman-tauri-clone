@@ -126,7 +126,7 @@ tyny-pulse/
 
 - **Strict Typing:** `strict: true` in `tsconfig.json`. Prohibit `any` — use explicit interfaces or `unknown`.
 - **UI State:** Use Zustand (`src/store/`) for global state (active workspace, open tabs, active theme). Keep component-local UI state in `useState`.
-- **Icons & Styling:** Lucide React icons, Tailwind CSS / CSS Modules, Framer Motion for smooth animations.
+- **Icons & Styling:** Lucide React icons, Custom Glassmorphism CSS / CSS Modules, Framer Motion for smooth animations.
 
 ---
 
