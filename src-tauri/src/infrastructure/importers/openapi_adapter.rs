@@ -70,3 +70,56 @@ impl ImportPort for OpenApiImporterAdapter {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_json_openapi_into_collection() {
+        let adapter = OpenApiImporterAdapter::new();
+        let content = r#"{
+            "openapi": "3.0.3",
+            "info": { "title": "Pet Store", "version": "1.0.0" },
+            "paths": {
+                "/pets": { "get": { "summary": "List pets" } },
+                "/pets/{id}": { "delete": { "summary": "Remove pet" } }
+            }
+        }"#;
+
+        let collection = adapter.parse_openapi(content).expect("collection");
+
+        assert_eq!(collection.name, "Pet Store");
+        assert!(!collection.items.is_empty());
+    }
+
+    #[test]
+    fn parses_yaml_openapi_documents() {
+        let adapter = OpenApiImporterAdapter::new();
+        let content = "\
+openapi: 3.0.3
+info:
+  title: YAML API
+  version: 0.1.0
+paths:
+  /health:
+    get: { summary: Health check }
+";
+        let collection = adapter.parse_openapi(content).expect("collection");
+        assert_eq!(collection.name, "YAML API");
+    }
+
+    #[test]
+    fn falls_back_to_default_title_when_info_missing() {
+        let adapter = OpenApiImporterAdapter::new();
+        let content = r#"{ "openapi": "3.0.3", "paths": {} }"#;
+        let collection = adapter.parse_openapi(content).expect("collection");
+        assert_eq!(collection.name, "Imported Collection");
+    }
+
+    #[test]
+    fn rejects_malformed_documents() {
+        let adapter = OpenApiImporterAdapter::new();
+        assert!(adapter.parse_openapi("{{{ not a doc").is_err());
+    }
+}

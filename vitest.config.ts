@@ -12,9 +12,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage/frontend',
-      // Gate the first instrumented surface at 80%. Expand `include` as more
-      // store/component tests land; generated IPC bindings stay excluded.
-      include: ['src/lib/**/*.ts'],
+      // Gate the surfaces that have real suites today. Expand `include` as
+      // more component tests land; generated IPC bindings stay excluded.
+      // Next increment: src/components/** once render tests exist.
+      include: ['src/lib/**/*.ts', 'src/store/**/*.ts', 'src/hooks/**/*.ts'],
       exclude: ['src/types/generated/**', '**/*.d.ts', 'src/__tests__/**'],
       thresholds: {
         lines: 80,

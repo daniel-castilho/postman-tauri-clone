@@ -32,7 +32,7 @@ export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStat
         if (environments[index]) {
           e.preventDefault();
           setActiveEnvironment(environments[index].id);
-          toast.success(`Ambiente: ${environments[index].name}`);
+          toast.success(`Environment: ${environments[index].name}`);
         }
       }
     };

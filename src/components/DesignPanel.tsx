@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { useWorkspaceStore, DesignSpec } from '../store/workspaceStore';
+import { useWorkspaceStore } from '../store/workspaceStore';
+import type { DesignSpec } from '../types/ipc';
 import type { LintIssue } from '../types/ipc';
 import { Save, AlertTriangle, CheckCircle, Info, Trash2, Plus, Code } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';

@@ -110,3 +110,51 @@ makeRequest();",
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::models::{Header, HttpRequest, RequestId, Url};
+
+    fn sample_request() -> HttpRequest {
+        HttpRequest {
+            id: RequestId("req_1".into()),
+            name: "Create pet".into(),
+            description: None,
+            method: crate::domain::models::HttpMethod::POST,
+            url: Url("https://api.example.com/pets".into()),
+            headers: vec![
+                Header { key: "X-Token".into(), value: "secret".into(), enabled: true },
+                Header { key: "X-Disabled".into(), value: "no".into(), enabled: false },
+            ],
+            body: Some(crate::domain::models::Body::Raw(
+                "{\"name\":\"Rex\"}".into(),
+                crate::domain::models::BodyMode::Json,
+            )),
+            auth: None,
+            variables: Default::default(),
+            scripts: None,
+            grpc_config: None,
+        }
+    }
+
+    #[test]
+    fn js_fetch_includes_method_url_and_only_enabled_headers() {
+        let adapter = TemplateCodeGeneratorAdapter::new();
+        let code = adapter.generate_js_fetch(&sample_request());
+
+        assert!(code.contains("POST"));
+        assert!(code.contains("https://api.example.com/pets"));
+        assert!(code.contains("X-Token"));
+        assert!(!code.contains("X-Disabled"));
+    }
+
+    #[test]
+    fn node_fetch_contains_method_and_body_payload() {
+        let adapter = TemplateCodeGeneratorAdapter::new();
+        let code = adapter.generate_node_fetch(&sample_request());
+
+        assert!(code.contains("POST") || code.contains("method"));
+        assert!(code.contains("pets"));
+    }
+}

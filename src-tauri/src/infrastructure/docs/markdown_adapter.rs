@@ -76,3 +76,62 @@ impl DocsGeneratorPort for MarkdownDocsAdapter {
         Ok(md)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::models::{Collection, CollectionItem, HttpRequest};
+
+    fn sample_request() -> HttpRequest {
+        HttpRequest {
+            id: crate::domain::models::RequestId("req_1".into()),
+            name: "List pets".into(),
+            method: crate::domain::models::HttpMethod::GET,
+            url: crate::domain::models::Url("https://api.example.com/pets".into()),
+            description: None,
+            headers: Vec::new(),
+            body: None,
+            auth: None,
+            variables: Default::default(),
+            scripts: None,
+            grpc_config: None,
+        }
+    }
+
+    #[test]
+    fn renders_collection_header_description_and_requests() {
+        let adapter = MarkdownDocsAdapter::new();
+        let collection = Collection {
+            id: "col_1".into(),
+            name: "Pet Store".into(),
+            description: Some("All pet endpoints".into()),
+            items: vec![
+                CollectionItem::Request(Box::new(sample_request())),
+                CollectionItem::Folder { name: "Admin".into(), description: None, items: vec![] },
+            ],
+            variables: Default::default(),
+        };
+
+        let markdown = adapter.generate_markdown(&collection).expect("markdown");
+
+        assert!(markdown.contains("# Collection: Pet Store"));
+        assert!(markdown.contains("_All pet endpoints_"));
+        assert!(markdown.contains("List pets"));
+        assert!(markdown.contains("Admin"));
+    }
+
+    #[test]
+    fn omits_description_block_when_absent() {
+        let adapter = MarkdownDocsAdapter::new();
+        let collection = Collection {
+            id: "col_1".into(),
+            name: "Bare".into(),
+            description: None,
+            items: vec![],
+            variables: Default::default(),
+        };
+
+        let markdown = adapter.generate_markdown(&collection).expect("markdown");
+        assert!(markdown.starts_with("# Collection: Bare\n\nDocumentation auto-generated"));
+    }
+}

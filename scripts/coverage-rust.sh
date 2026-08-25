@@ -16,10 +16,14 @@ fi
 mkdir -p "${OUT_DIR}"
 
 # Gated surface: modules that already have a real unit/integration suite.
-# Untested IPC command wrappers, desktop bootstrap, and adapters without tests
-# are excluded so the 80% floor is enforceable today. Shrink this regex as
-# tests land — do not lower the threshold.
-IGNORE_REGEX='application/commands/(ai_tasks|design_tasks|docs_tasks|generate_code|git_tasks|import_tasks|load_test\.rs|mock_server_tasks|monitor_tasks|sync_tasks|workspace)|bin/tyny-cli|domain/(errors|models)|infrastructure/(ai|codegen|docs|grpc|http|importers|mock|security|websocket)|infrastructure/persistence/fs_collection|infrastructure/persistence/fs_design|infrastructure/git/git_process_adapter|infrastructure/scripting/quickjs_runner|main\.rs|presentation/(commands|collections|designs)'
+# Excluded today (with rationale):
+#   - application/commands/* using Tauri State/AppHandle extractors (need a
+#     desktop harness): ai, git, load_test, mock_server, monitor, sync, workspace
+#   - bin/tyny-cli + main.rs + presentation/*: bootstrap & IPC plumbing
+#   - domain/errors + domain/models: thiserror/ts-rs derive boilerplate
+#   - infrastructure without suites yet: ai, grpc, http, mock, websocket
+# Shrink further as tests land — do not lower the threshold.
+IGNORE_REGEX='application/commands/(ai_tasks|git_tasks|load_test\.rs|mock_server_tasks|monitor_tasks|sync_tasks|workspace)|bin/tyny-cli|domain/(errors|models)|infrastructure/(ai|grpc|http|mock|websocket)|infrastructure/persistence/fs_collection|infrastructure/persistence/fs_design|infrastructure/git/git_process_adapter|infrastructure/scripting/quickjs_runner|main\.rs|presentation/(commands|collections|designs)'
 
 # Instrument and run tests once, then emit HTML + LCOV from the same profdata.
 # --html and --lcov cannot be combined in a single cargo-llvm-cov invocation.

@@ -92,3 +92,46 @@ impl EncryptionManager {
         String::from_utf8(decrypted).map_err(|e| e.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_salt_produces_a_usable_manager() {
+        let salt = EncryptionManager::generate_salt();
+        assert!(!salt.is_empty());
+        // The generated salt must be accepted by the key derivation.
+        assert!(EncryptionManager::new("password", &salt).is_ok());
+    }
+
+    #[test]
+    fn encrypt_decrypt_roundtrips_plaintext() {
+        let salt = EncryptionManager::generate_salt();
+        let manager = EncryptionManager::new("correct horse battery staple", &salt)
+            .expect("manager");
+
+        let ciphertext = manager.encrypt("vault secret").expect("encrypt");
+        assert_ne!(ciphertext, "vault secret");
+
+        let plaintext = manager.decrypt(&ciphertext).expect("decrypt");
+        assert_eq!(plaintext, "vault secret");
+    }
+
+    #[test]
+    fn decrypt_rejects_garbage_payloads() {
+        let salt = EncryptionManager::generate_salt();
+        let manager = EncryptionManager::new("password", &salt).expect("manager");
+        assert!(manager.decrypt("not-base64!!").is_err());
+        assert!(manager.decrypt("QUJD").is_err(), "short payload must fail");
+    }
+
+    #[test]
+    fn ciphertext_differs_between_runs_due_to_random_nonce() {
+        let salt = EncryptionManager::generate_salt();
+        let manager = EncryptionManager::new("password", &salt).expect("manager");
+        let first = manager.encrypt("same input").expect("encrypt");
+        let second = manager.encrypt("same input").expect("encrypt");
+        assert_ne!(first, second);
+    }
+}
