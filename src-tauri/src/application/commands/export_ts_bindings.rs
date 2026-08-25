@@ -23,9 +23,11 @@ mod tests {
         CollectionRunReport, DesignSpec, Environment, EnvironmentVariable, FormField,
         GitDiffChunkDto, GitFileChangeDto, GitFileDiffDto, GitFileStatusType, GitStatusSummaryDto,
         GlobalVariables, GrpcConfig, GrpcMetadata, Header, HttpScripts, HttpRequest,
-        HttpResponse, HttpMethod, KeyValue, LintIssue, LintSeverity, LoadTestConfig,
-        LoadTestReport, MemberRole, MockRule, MockServerStatus, MonitorDefinition,
-        MonitorReport, RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput, SyncChange,
+        HttpResponse, HttpMethod, KeyValue, LatencyPercentilesDto, LintIssue, LintSeverity,
+        LoadTestConfig, LoadTestConfigDto, LoadTestProgressEventDto, LoadTestReport, MemberRole,
+        MockRule, MockServerStatus, MonitorDefinition,
+        MonitorReport, RequestId, RequestRunResult, ScriptLibraryInfo, ScriptLog, SendRequestOutput,
+        StatusCodeCountDto, SyncChange,
         TestResult, Url, VariableType, WorkspaceBundle, WorkspaceMember,
     };
 
@@ -79,6 +81,12 @@ mod tests {
         // Load testing
         LoadTestConfig::export_all(&cfg).unwrap();
         LoadTestReport::export_all(&cfg).unwrap();
+        // Streaming load testing engine (P4 epic; also emitted as the
+        // `load_test_progress` event payload)
+        StatusCodeCountDto::export_all(&cfg).unwrap();
+        LatencyPercentilesDto::export_all(&cfg).unwrap();
+        LoadTestProgressEventDto::export_all(&cfg).unwrap();
+        LoadTestConfigDto::export_all(&cfg).unwrap();
 
         // Monitors (also emitted as the `monitor-check` event payload)
         MonitorDefinition::export_all(&cfg).unwrap();

@@ -1,10 +1,151 @@
 use crate::domain::models::{HttpRequest, LoadTestConfig, LoadTestReport};
 use crate::application::ports::http_client::HttpClientPort;
 use crate::application::ports::variable_resolver::VariableResolverPort;
-use crate::domain::errors::DomainError;
+use crate::application::services::load_test_service::{
+    LatestProgressSlot, LoadTestRun, LoadTestService,
+};
+use crate::domain::errors::{AppError, DomainError};
 use std::sync::Arc;
 use tokio::sync::{Mutex, Semaphore};
 use std::time::Instant;
+
+// --- Streaming Tokio load testing engine (P4 epic) ---------------------------
+//
+// Thin IPC adapter around `LoadTestService`. The service owns the worker
+// pool and the single-writer aggregator; this layer only wires Tauri state,
+// spawns the background orchestration task and forwards throttled progress
+// snapshots to the Webview through the `load_test_progress` event.
+
+use crate::domain::models::{
+    Environment, GlobalVariables, LoadTestConfigDto, LoadTestProgressEventDto,
+};
+use tokio::sync::watch;
+use tauri::Emitter;
+
+/// Event channel name streamed to the Webview every sampling window.
+pub const LOAD_TEST_PROGRESS_EVENT: &str = "load_test_progress";
+
+/// Managed handle to the currently running (or last finished) load test.
+pub struct LoadTestState {
+    cancellation: Arc<watch::Sender<bool>>,
+    latest_progress: LatestProgressSlot,
+    is_running: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl LoadTestState {
+    pub fn new() -> Self {
+        let (cancellation, _) = watch::channel(false);
+        Self {
+            cancellation: Arc::new(cancellation),
+            latest_progress: Arc::new(std::sync::Mutex::new(None)),
+            is_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+        }
+    }
+}
+
+impl Default for LoadTestState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[tauri::command]
+pub async fn start_load_test(
+    config: LoadTestConfigDto,
+    environment: Environment,
+    globals: GlobalVariables,
+    service: tauri::State<'_, Arc<LoadTestService>>,
+    state: tauri::State<'_, LoadTestState>,
+    app_handle: tauri::AppHandle,
+) -> Result<String, AppError> {
+    if state
+        .is_running
+        .compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::SeqCst,
+            std::sync::atomic::Ordering::SeqCst,
+        )
+        .is_err()
+    {
+        return Err(AppError {
+            code: "VALIDATION_ERROR".to_string(),
+            message: "A load test is already running".to_string(),
+        });
+    }
+
+    let test_id = uuid::Uuid::new_v4().to_string();
+    // Reset the shared cancellation flag for this fresh run.
+    let _ = state.cancellation.send_replace(false);
+    let cancel_rx = state.cancellation.subscribe();
+    let latest_slot = Arc::clone(&state.latest_progress);
+    let is_running = Arc::clone(&state.is_running);
+
+    let (progress_tx, mut progress_rx) =
+        tokio::sync::mpsc::channel::<LoadTestProgressEventDto>(64);
+    let run_test_id = test_id.clone();
+    let runner_service = Arc::clone(&*service);
+
+    tauri::async_runtime::spawn(async move {
+        // Drive the engine and the event-forwarding loop concurrently: the
+        // forward loop ends when the aggregator drops its sender, which is
+        // exactly when the terminal `is_finished` snapshot was delivered.
+        let run = LoadTestRun {
+            config,
+            environment: Arc::new(environment),
+            globals: Arc::new(globals),
+            test_id: run_test_id,
+            cancel_rx,
+            progress_tx,
+            latest_slot: latest_slot.clone(),
+        };
+        let run_future = runner_service.run(run);
+        let forward_future = async {
+            while let Some(event) = progress_rx.recv().await {
+                if let Ok(mut slot) = latest_slot.lock() {
+                    *slot = Some(event.clone());
+                }
+                let _ = app_handle.emit(LOAD_TEST_PROGRESS_EVENT, event);
+            }
+        };
+        let (run_result, ()) = tokio::join!(run_future, forward_future);
+        if let Err(error) = run_result {
+            eprintln!("load test failed: {error}");
+        }
+        is_running.store(false, std::sync::atomic::Ordering::SeqCst);
+    });
+
+    Ok(test_id)
+}
+
+#[tauri::command]
+pub async fn stop_load_test(
+    state: tauri::State<'_, LoadTestState>,
+) -> Result<Option<LoadTestProgressEventDto>, AppError> {
+    let _ = state.cancellation.send_replace(true);
+    Ok(state
+        .latest_progress
+        .lock()
+        .ok()
+        .and_then(|slot| slot.clone()))
+}
+
+#[tauri::command]
+pub async fn get_load_test_status(
+    state: tauri::State<'_, LoadTestState>,
+) -> Result<Option<LoadTestProgressEventDto>, AppError> {
+    Ok(state
+        .latest_progress
+        .lock()
+        .ok()
+        .and_then(|slot| slot.clone()))
+}
+
+// --- Legacy sequential load test use case ------------------------------------
+//
+// Retained unchanged for the blocking `run_load_test` IPC contract used by
+// older clients. New consumers must prefer `start_load_test` above, which
+// streams sampled metrics without mutex contention on the hot path.
 
 const MAX_CONCURRENT_REQUESTS: usize = 100;
 

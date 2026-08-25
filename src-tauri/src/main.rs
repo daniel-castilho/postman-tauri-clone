@@ -32,7 +32,8 @@ use infrastructure::importers::openapi_adapter::OpenApiImporterAdapter;
 use application::commands::import_tasks::ImportUseCase;
 use infrastructure::docs::markdown_adapter::MarkdownDocsAdapter;
 use application::commands::docs_tasks::DocsUseCase;
-use application::commands::load_test::LoadTestUseCase;
+use application::commands::load_test::{LoadTestState, LoadTestUseCase};
+use application::services::load_test_service::LoadTestService;
 use application::commands::monitor_tasks::MonitorUseCase;
 use application::commands::sync_tasks::SyncUseCase;
 use infrastructure::grpc::mock_adapter::MockGrpcClientAdapter;
@@ -75,6 +76,10 @@ fn main() {
     let docs_usecase = DocsUseCase::new(docs_adapter);
 
     let load_test_usecase = LoadTestUseCase::new(http_client.clone(), variable_resolver.clone());
+    let load_test_service = Arc::new(LoadTestService::new(
+        http_client.clone(),
+        variable_resolver.clone(),
+    ));
     let monitor_usecase = MonitorUseCase::new(http_client.clone());
     let sync_usecase = SyncUseCase::new();
 
@@ -102,6 +107,8 @@ fn main() {
         .manage(import_usecase)
         .manage(docs_usecase)
         .manage(load_test_usecase)
+        .manage(load_test_service)
+        .manage(LoadTestState::new())
         .manage(monitor_usecase)
         .manage(sync_usecase)
         .manage(design_usecase)
@@ -123,6 +130,9 @@ fn main() {
             presentation::commands::read_file_text,
             presentation::commands::generate_docs,
             presentation::commands::run_load_test,
+            application::commands::load_test::start_load_test,
+            application::commands::load_test::stop_load_test,
+            application::commands::load_test::get_load_test_status,
             presentation::commands::start_monitor,
             presentation::commands::stop_monitor,
             presentation::commands::invite_user,

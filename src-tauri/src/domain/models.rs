@@ -347,6 +347,68 @@ pub struct LoadTestReport {
     pub requests_per_second: f64,
 }
 
+// --- Load testing engine (P4 epic) ---
+
+/// Configuration for the streaming Tokio load testing engine.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct LoadTestConfigDto {
+    /// Target HTTP request executed by every virtual user.
+    pub target_request: HttpRequest,
+    /// Concurrent virtual users (1-500).
+    pub virtual_users: u32,
+    /// Total test duration in seconds (1-3600).
+    pub duration_seconds: u64,
+    /// Time window used to gradually scale up active virtual users.
+    pub ramp_up_seconds: u64,
+    /// Per-request timeout in milliseconds.
+    pub timeout_ms: u64,
+}
+
+/// Latency distribution snapshot computed over all collected samples.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct LatencyPercentilesDto {
+    pub p50_ms: f64,
+    pub p90_ms: f64,
+    pub p95_ms: f64,
+    pub p99_ms: f64,
+    pub min_ms: f64,
+    pub max_ms: f64,
+    pub mean_ms: f64,
+}
+
+/// One bucket of the HTTP status code breakdown.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusCodeCountDto {
+    /// HTTP status code, or `0` for transport errors/timeouts.
+    pub code: u16,
+    pub count: u64,
+}
+
+/// Sampled metrics snapshot streamed to the Webview every 200ms while a
+/// load test runs. The final event of a run carries `is_finished: true`.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct LoadTestProgressEventDto {
+    pub test_id: String,
+    pub elapsed_seconds: f64,
+    pub active_vus: u32,
+    pub current_rps: f64,
+    pub total_requests: u64,
+    pub successful_requests: u64,
+    pub failed_requests: u64,
+    pub bytes_per_second: f64,
+    pub percentiles: LatencyPercentilesDto,
+    pub status_codes: Vec<StatusCodeCountDto>,
+    pub is_finished: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct MonitorDefinition {

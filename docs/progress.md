@@ -61,8 +61,17 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Governance Linter**: Design-standard validation in real time in the backend (Rust).
 - [x] **Unified Context Switching**: Hybrid interface for Design and Execution.
 
-### Milestones Achieved (Zero Type-Drift Epic Complete ✅ - End-to-End Type Safety)
+### Milestones Achieved (Load Testing Engine Epic Complete ✅ - P4)
 
+- [x] **Tokio Engine (`LoadTestService`)**: 1–500 virtual users as lightweight Tokio tasks with ramp-up staggering and per-request timeout (`application/services/load_test_service.rs`).
+- [x] **Lock-Free Aggregation**: Workers push `Sample { duration_ms, status_code, bytes }` into a bounded `mpsc` channel; a single-writer aggregator owns all metrics — zero mutexes on the hot path.
+- [x] **Real-Time Streaming**: `load_test_progress` Tauri events every 200ms carrying RPS (smoothed), active VUs, throughput, status-code breakdown and nearest-rank percentiles (p50/p90/p95/p99 over sorted sample windows).
+- [x] **Graceful Cancellation**: `stop_load_test` flips a `tokio::sync::watch` flag selected upon by workers and aggregator — verified by test to halt in < 100ms.
+- [x] **IPC Surface**: `start_load_test`, `stop_load_test`, `get_load_test_status` registered in `main.rs`; `LoadTestConfigDto`, `LoadTestProgressEventDto`, `LatencyPercentilesDto`, `StatusCodeCountDto` exported via ts-rs.
+- [x] **React Panel (`src/components/LoadTestingPanel/`)**: target request picker, VUs slider (1–500), duration/ramp-up/timeout controls, live metric cards, dependency-free animated SVG charts (RPS line, p50/p95/p99 multi-line, status donut) and JSON/Markdown report export.
+- [x] **Legacy Preserved**: blocking `run_load_test` contract untouched ("Zero Behavior Change"); new consumers use the streaming commands.
+
+### Milestones Achieved (Zero Type-Drift Epic Complete ✅ - End-to-End Type Safety)
 - [x] **IPC Surface Repair**: All 30+ Tauri commands compile, are registered, and match frontend payloads (`ws_*`, `ai_*`, `run_collection`, designs, monitors, sync, cookies).
 - [x] **ts-rs Integration**: All IPC-crossing domain types derive `TS`; bindings generated into `src/types/generated/` by `cargo test export_ts_bindings` (39 types).
 - [x] **Single Source of Truth**: Frontend consumes generated contracts via the `src/types/ipc.ts` barrel; hand-written duplicate interfaces removed from `workspaceStore.ts`.

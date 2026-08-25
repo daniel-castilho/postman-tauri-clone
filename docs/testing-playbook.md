@@ -24,6 +24,7 @@ Role: Define how to design, run, diagnose, and maintain tests for **Tyny Pulse**
 | :------------------------- | :------------------------------ | :---------------------------------- | :--------------------------------------------------------------------------------------------------------- |
 | **Domain Unit**            | `src-tauri/src/domain/`         | Pure Rust (`cargo test`)            | Entity invariants, URL validation, Header normalization, DomainError enums. Zero mocks.                    |
 | **Application Unit**       | `src-tauri/src/application/`    | Rust + Mock Ports (`cargo test`)    | Use-case orchestration (`ExecuteRequestService`, `LintSpecService`), variable resolution logic.            |
+| **Load Test Engine**       | `application/services/load_test_service.rs` | Rust + in-memory mock HTTP client (`cargo test`) | Percentile calculator accuracy, config validation bounds, streaming event contract, cancellation halt latency (< 100ms), transport-failure accounting. |
 | **Infrastructure Adapter** | `src-tauri/src/infrastructure/` | Rust Integration (`cargo test`)     | `ReqwestAdapter` HTTP calls, `QuickJSAdapter` script evaluations, `AesVaultAdapter` encryption/decryption. |
 | **Frontend Typecheck**     | `src/`                          | TypeScript + Vite (`npm run build`) | React 19 component typing, Zustand state updates, IPC DTO contract verification.                           |
 
