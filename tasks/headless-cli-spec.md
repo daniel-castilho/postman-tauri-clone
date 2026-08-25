@@ -13,6 +13,7 @@
 Provide a lightweight, high-performance, headless CLI execution engine for **Tyny Pulse** that allows developers to run collection test suites, evaluate JavaScript assertions, and output standardized CI/CD test reports in terminal environments without needing a GUI desktop session.
 
 ### In Scope (P2)
+
 - Command-line argument parser & dispatcher in `src-tauri/src/presentation/cli.rs`.
 - Subcommand interface: `tyny-cli run <collection_path.json>` with optional flags.
 - Support for CLI flags:
@@ -29,6 +30,7 @@ Provide a lightweight, high-performance, headless CLI execution engine for **Tyn
 - Documentation & CI pipeline templates.
 
 ### Out of Scope
+
 - Full interactive TUI (Terminal User Interface) with ncurses/ratatui.
 - Real-time cloud telemetry streaming.
 - Executing GUI desktop commands in CLI mode.
@@ -86,22 +88,25 @@ Provide a lightweight, high-performance, headless CLI execution engine for **Tyn
 ## 3. CLI Command & Flag Specification
 
 ### Command Syntax
+
 ```bash
 tyny-cli run <COLLECTION_PATH> [OPTIONS]
 ```
 
 ### Flags & Options
-| Flag (Short / Long) | Type | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `-e`, `--env <PATH>` | String | Path to workspace environment JSON file | Optional |
-| `-g`, `--globals <PATH>` | String | Path to global variables JSON file | Optional |
-| `-v`, `--var <KEY=VALUE>` | String (Repeatable) | Variable overrides (e.g. `-v baseUrl=https://api.tyny.ca`) | Optional |
-| `-r`, `--report <PATH>` | String | Output report destination file path | Optional |
-| `-f`, `--format <FORMAT>` | Enum (`json`, `junit`) | Report output format | Inferred from file extension |
-| `-h`, `--help` | Flag | Output CLI help information | N/A |
-| `-V`, `--version` | Flag | Output version information | N/A |
+
+| Flag (Short / Long)       | Type                   | Description                                                | Default                      |
+| :------------------------ | :--------------------- | :--------------------------------------------------------- | :--------------------------- |
+| `-e`, `--env <PATH>`      | String                 | Path to workspace environment JSON file                    | Optional                     |
+| `-g`, `--globals <PATH>`  | String                 | Path to global variables JSON file                         | Optional                     |
+| `-v`, `--var <KEY=VALUE>` | String (Repeatable)    | Variable overrides (e.g. `-v baseUrl=https://api.tyny.ca`) | Optional                     |
+| `-r`, `--report <PATH>`   | String                 | Output report destination file path                        | Optional                     |
+| `-f`, `--format <FORMAT>` | Enum (`json`, `junit`) | Report output format                                       | Inferred from file extension |
+| `-h`, `--help`            | Flag                   | Output CLI help information                                | N/A                          |
+| `-V`, `--version`         | Flag                   | Output version information                                 | N/A                          |
 
 ### Example CLI Usage
+
 ```bash
 # Basic execution
 tyny-cli run ./collections/auth_suite.json
@@ -118,19 +123,21 @@ tyny-cli run ./collections/auth_suite.json \
 
 ## 4. Exit Code Contract
 
-| Code | Meaning | Condition |
-| :-: | :--- | :--- |
-| **`0`** | **SUCCESS** | All requests completed and 100% of test assertions passed. |
-| **`1`** | **TEST_FAILURE** | Collection executed successfully, but 1 or more test assertions failed. |
-| **`2`** | **USAGE_ERROR** | Invalid CLI arguments, non-existent input files, or invalid JSON syntax. |
-| **`3`** | **EXECUTION_ERROR** | Unhandled domain error, network connectivity failure, or QuickJS panic. |
+|  Code   | Meaning             | Condition                                                                |
+| :-----: | :------------------ | :----------------------------------------------------------------------- |
+| **`0`** | **SUCCESS**         | All requests completed and 100% of test assertions passed.               |
+| **`1`** | **TEST_FAILURE**    | Collection executed successfully, but 1 or more test assertions failed.  |
+| **`2`** | **USAGE_ERROR**     | Invalid CLI arguments, non-existent input files, or invalid JSON syntax. |
+| **`3`** | **EXECUTION_ERROR** | Unhandled domain error, network connectivity failure, or QuickJS panic.  |
 
 ---
 
 ## 5. Report Specifications
 
 ### 5.1 JSON Report Structure
+
 Full execution snapshot serialized as JSON:
+
 ```json
 {
   "version": "1.0",
@@ -148,7 +155,9 @@ Full execution snapshot serialized as JSON:
 ```
 
 ### 5.2 JUnit XML Report Structure
+
 XML compliant with JUnit schema for CI test visualizers:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites name="Tyny Pulse Collection Run" tests="25" failures="1" errors="0" time="1.420">

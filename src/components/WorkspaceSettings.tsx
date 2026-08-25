@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Users, UserPlus, Shield, User, Mail, X, CheckCircle2, Package, ToggleLeft, ToggleRight } from 'lucide-react';
+import {
+  Users,
+  UserPlus,
+  Shield,
+  User,
+  Mail,
+  X,
+  CheckCircle2,
+  Package,
+  ToggleLeft,
+  ToggleRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { MemberRole, WorkspaceMember, ScriptLibraryInfo } from '../types/ipc';
 import { useWorkspaceStore } from '../store/workspaceStore';
@@ -16,7 +27,9 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
   const [inviteRole, setInviteRole] = useState<MemberRole>('Viewer');
   const [loading, setLoading] = useState(false);
   const [libraries, setLibraries] = useState<ScriptLibraryInfo[]>([]);
-  const workspacePath = useWorkspaceStore((state: { workspacePath: string }) => state.workspacePath);
+  const workspacePath = useWorkspaceStore(
+    (state: { workspacePath: string }) => state.workspacePath,
+  );
 
   useEffect(() => {
     loadMembers();
@@ -28,8 +41,8 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
     try {
       await invoke('configure_script_engine', { workspacePath });
       setLibraries(await invoke<ScriptLibraryInfo[]>('list_script_libraries', { workspacePath }));
-    } catch (e) {
-      toast.error("Falha ao carregar bibliotecas de script");
+    } catch {
+      toast.error('Falha ao carregar bibliotecas de script');
     }
   };
 
@@ -41,9 +54,9 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
           workspacePath,
           name: library.name,
           enabled: !library.enabled,
-        })
+        }),
       );
-    } catch (e) {
+    } catch {
       toast.error(`Falha ao atualizar ${library.name}`);
     }
   };
@@ -52,8 +65,8 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
     try {
       const list = await invoke<WorkspaceMember[]>('get_members');
       setMembers(list);
-    } catch (e) {
-      toast.error("Erro ao carregar membros");
+    } catch {
+      toast.error('Erro ao carregar membros');
     }
   };
 
@@ -62,11 +75,11 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
     setLoading(true);
     try {
       await invoke('invite_user', { email: inviteEmail, role: inviteRole });
-      toast.success("Convite enviado com sucesso!");
+      toast.success('Convite enviado com sucesso!');
       setInviteEmail('');
       loadMembers();
-    } catch (e) {
-      toast.error("Falha ao enviar convite");
+    } catch {
+      toast.error('Falha ao enviar convite');
     } finally {
       setLoading(false);
     }
@@ -74,13 +87,15 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content workspace-settings-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-content workspace-settings-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="title-area">
             <Users size={20} className="accent-icon" />
             <h3>Workspace Collaboration</h3>
           </div>
-          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
         </div>
 
         <div className="modal-body-content">
@@ -89,19 +104,28 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
             <div className="invite-form">
               <div className="input-with-icon">
                 <Mail size={16} />
-                <input 
-                  placeholder="name@company.com" 
-                  value={inviteEmail} 
-                  onChange={e => setInviteEmail(e.target.value)}
+                <input
+                  placeholder="name@company.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
                 />
               </div>
-              <select value={inviteRole} onChange={e => setInviteRole(e.target.value as any)}>
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as MemberRole)}
+              >
                 <option value="Viewer">Viewer</option>
                 <option value="Editor">Editor</option>
                 <option value="Admin">Admin</option>
               </select>
               <button className="invite-btn" onClick={handleInvite} disabled={loading}>
-                {loading ? '...' : <><UserPlus size={16} /> Invite</>}
+                {loading ? (
+                  '...'
+                ) : (
+                  <>
+                    <UserPlus size={16} /> Invite
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -109,12 +133,10 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
           <div className="members-list-section">
             <h4>Workspace Members ({members.length})</h4>
             <div className="members-list">
-              {members.map(m => (
+              {members.map((m) => (
                 <div key={m.user_id} className="member-row animate-fade-in">
                   <div className="member-main">
-                    <div className="member-avatar">
-                      {m.email[0].toUpperCase()}
-                    </div>
+                    <div className="member-avatar">{m.email[0].toUpperCase()}</div>
                     <div className="member-details">
                       <span className="member-email">{m.email}</span>
                       <span className="member-id">ID: {m.user_id.slice(0, 8)}...</span>
@@ -132,14 +154,16 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
           <div className="members-list-section">
             <h4>Script Libraries</h4>
             <div className="members-list">
-              {libraries.map(lib => (
+              {libraries.map((lib) => (
                 <div key={lib.name} className="member-row animate-fade-in">
                   <div className="member-main">
                     <div className="member-avatar">
                       <Package size={16} />
                     </div>
                     <div className="member-details">
-                      <span className="member-email">{lib.name} <small>v{lib.version}</small></span>
+                      <span className="member-email">
+                        {lib.name} <small>v{lib.version}</small>
+                      </span>
                       <span className="member-id">{lib.description}</span>
                     </div>
                   </div>
@@ -148,7 +172,11 @@ export const WorkspaceSettings: React.FC<Props> = ({ onClose }) => {
                     onClick={() => toggleLibrary(lib)}
                     title={lib.enabled ? 'Disable for scripts' : 'Enable for scripts'}
                   >
-                    {lib.enabled ? <ToggleRight size={18} color="#22c55e" /> : <ToggleLeft size={18} />}
+                    {lib.enabled ? (
+                      <ToggleRight size={18} color="#22c55e" />
+                    ) : (
+                      <ToggleLeft size={18} />
+                    )}
                   </button>
                 </div>
               ))}

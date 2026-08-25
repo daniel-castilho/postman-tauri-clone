@@ -7,6 +7,7 @@ This document is the global state map of the project. Any AI agent taking over t
 ---
 
 ### Milestones Achieved (Git-Native Interface Complete ✅ - P3 Epic)
+
 - [x] **`GitRepositoryPort`**: Pure async Rust port (`application/ports/git_repository.rs`) for status, staging, commit, push/pull, branch checkout and file diffs.
 - [x] **`GitProcessAdapter`**: Subprocess-based adapter over the system `git` executable — zero new crates (Rule 5), credentials resolved by the user's own HTTPS helper/SSH agent, all blocking work on `tokio::task::spawn_blocking`.
 - [x] **Security Initializer**: Idempotent `.gitignore` generator keeps `*.vault.enc`, `.vault.key`, `.env.local`, `script-libraries-local.json` out of tracked changes; refreshed on every status read.
@@ -15,6 +16,7 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Integration Tests**: Real temporary repositories validate lifecycle, vault-file exclusion, unborn-HEAD branches and non-repository workspaces (86 total tests green).
 
 ### Milestones Achieved (Phase 19 Complete ✅ - Advanced Scripting & npm Integration)
+
 - [x] **`require()` in Sandbox Scripts**: Curated library registry embedded at compile time (`include_str!`) and resolved by a CommonJS-shaped `require('name')` shim inside the QuickJS setup script.
 - [x] **Bundled MIT Libraries**: lodash 4.17.21, dayjs 1.11.13, crypto-js 4.2.0, uuid 8.3.2 (`src-tauri/assets/script-libs/` + THIRD-PARTY-NOTICES.md); each bundle smoke-tested in-sandbox (incl. NIST SHA-256 vector).
 - [x] **In-App Package Manager**: Workspace Settings → Script Libraries section toggles libraries per workspace; persisted to Git-friendly `script-libraries.json`, re-read on every execution.
@@ -22,6 +24,7 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **New IPC Surface**: `configure_script_engine`, `list_script_libraries`, `set_script_library_enabled`; `ScriptLibraryInfo` binding exported via the zero type-drift pipeline.
 
 ### Milestones Achieved (Phase 18 Complete ✅ - Headless Automation & CLI)
+
 - [x] **Headless CLI Mode**: `tyny-cli run <collection.json>` executes collections from the terminal without booting the desktop shell (`presentation/cli.rs` branches before the Tauri builder; dedicated `src-tauri/src/bin/tyny-cli.rs` target without the Windows GUI subsystem attribute).
 - [x] **JSON/JUnit Reporting**: Machine-readable reports via `infrastructure/reporting/` (spec §5 envelope: schema version, request/assertion summary, `durationMs`; JUnit XML with `errors`, `classname`, root `time`) — no new dependencies.
 - [x] **Pipeline-Friendly Exit Codes**: 0 = all tests passed, 1 = test failures, 2 = usage/input error, 3 = domain error.
@@ -32,6 +35,7 @@ This document is the global state map of the project. Any AI agent taking over t
 ---
 
 ### Milestones Achieved (Phases 8-14 Complete ✅ - Base Platform)
+
 - [x] **Multi-Protocol**: GraphQL, WebSocket, gRPC (Mock Hub).
 - [x] **Cookie Manager**: Automatic session persistence.
 - [x] **AI-Native**: Test Generator and Explanations via Gemini.
@@ -40,21 +44,25 @@ This document is the global state map of the project. Any AI agent taking over t
 - [x] **Workspace Member Management**: Access management with granular control.
 
 ### Milestones Achieved (Phase 15 Complete ✅ - DX & Power Tools)
+
 - [x] **Global Command Palette (Ctrl + P)**: Instant workspace-wide search (Requests, Envs, Actions).
 - [x] **Keyboard Shortcuts Engine**: Premium shortcuts for `Send`, `Save` and Navigation.
 - [x] **Quick Environment Switcher**: Instant switching via keyboard (Ctrl + 1-9).
 
 ### Milestones Achieved (Phase 17 Complete ✅ - Enterprise Security)
+
 - [x] **Local Secrets Encryption (AES-256-GCM)**: Military-grade secret protection on disk via Rust.
 - [x] **Offline Sync Queue**: Extreme resilience for syncing under unstable networks.
 - [x] **Transparent Security**: Automatic and secure decryption of local variables.
 
 ### Milestones Achieved (Phase 20 Complete ✅ - SpecHub / API Design)
+
 - [x] **API Design Hub**: Dedicated space for authoring OpenAPI 3.0/3.1 specifications.
 - [x] **Governance Linter**: Design-standard validation in real time in the backend (Rust).
 - [x] **Unified Context Switching**: Hybrid interface for Design and Execution.
 
 ### Milestones Achieved (Zero Type-Drift Epic Complete ✅ - End-to-End Type Safety)
+
 - [x] **IPC Surface Repair**: All 30+ Tauri commands compile, are registered, and match frontend payloads (`ws_*`, `ai_*`, `run_collection`, designs, monitors, sync, cookies).
 - [x] **ts-rs Integration**: All IPC-crossing domain types derive `TS`; bindings generated into `src/types/generated/` by `cargo test export_ts_bindings` (39 types).
 - [x] **Single Source of Truth**: Frontend consumes generated contracts via the `src/types/ipc.ts` barrel; hand-written duplicate interfaces removed from `workspaceStore.ts`.
@@ -68,26 +76,31 @@ This document is the global state map of the project. Any AI agent taking over t
 ### Phase 18: Headless Automation (The CLI) ✅ (Completed — see milestones above)
 
 ### Phase 19: Advanced Scripting & npm Integration ✅ (Completed — see milestones above)
+
 - [ ] **Dynamic Dependency Resolver (runtime download)**: Fetch arbitrary npm packages on demand — deferred; needs new crates (`tar`/`flate2`) and network host approval (Rule 5).
 - [ ] **Expanded curated registry**: ajv, moment-timezone and similar candidates.
 
 ### Phase 16: Advanced Collaboration & Presence (NEXT FOCUS)
+
 - [ ] **Live Avatars/Presence**: Visual identification of active members in the workspace core.
 - [ ] **Conflict Resolution UI**: Merge/diff system for simultaneous edits (Advanced CRDT).
 
 ---
 
 ### 📐 Architecture Directives (Attention!)
+
 - [ ] **Strategy Pattern**: Whenever complex network/business `match` blocks accumulate, refactor into Traits + typed Enums for extensibility.
 
 ### Current Architecture
-* **Frontend**: React 19 + Zustand + Monaco Editor + Lucide Icons + Framer Motion. Types imported from ts-rs generated bindings (`src/types/ipc.ts` barrel → `src/types/generated/`).
-* **Backend**: Tauri v2 (Rust). Encryption via AES-256-GCM.
-* **AI**: Gemini 1.5 Series (via logic layer).
-* **Mock**: Axum Server embedded in Rust.
-* **SpecHub**: OpenAPI Design & Governance Engine.
-* **Sync**: Robust background with `Offline Queue` and connectivity detection.
-* **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
+
+- **Frontend**: React 19 + Zustand + Monaco Editor + Lucide Icons + Framer Motion. Types imported from ts-rs generated bindings (`src/types/ipc.ts` barrel → `src/types/generated/`).
+- **Backend**: Tauri v2 (Rust). Encryption via AES-256-GCM.
+- **AI**: Gemini 1.5 Series (via logic layer).
+- **Mock**: Axum Server embedded in Rust.
+- **SpecHub**: OpenAPI Design & Governance Engine.
+- **Sync**: Robust background with `Offline Queue` and connectivity detection.
+- **Persistence**: Local-First via Fs repositories (Collection, Environment, Design, Globals).
 
 ---
+
 _Last Updated: August 2026. Git-Native Interface (P3) completed: in-app Git panel over `GitRepositoryPort`/`GitProcessAdapter` with secure `.gitignore` generation and typed IPC. Next focus: Phase 16 (Advanced Collaboration & Presence)._

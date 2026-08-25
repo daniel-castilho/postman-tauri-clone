@@ -5,9 +5,16 @@ import { invoke } from '@tauri-apps/api/core';
 import { Send, Power, PowerOff, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface WsEventPayload {
+  connectionId: string;
+  message?: string;
+  type?: string;
+  status?: 'connected' | 'disconnected' | 'connecting';
+}
+
 interface Message {
   text: string;
-  type: 'text' | 'binary' | 'info';
+  type: string;
   direction: 'in' | 'out';
   timestamp: string;
 }
@@ -20,30 +27,35 @@ interface WebSocketDebuggerProps {
 export function WebSocketDebugger({ id, url }: WebSocketDebuggerProps) {
   const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const unlistenMsg = listen<any>('ws-message', (event) => {
+    const unlistenMsg = listen<WsEventPayload>('ws-message', (event) => {
       if (event.payload.connectionId === id) {
-        setMessages(prev => [...prev.slice(-99), {
-          text: event.payload.message,
-          type: event.payload.type,
-          direction: 'in',
-          timestamp: new Date().toLocaleTimeString()
-        }]);
+        setMessages((prev) => [
+          ...prev.slice(-99),
+          {
+            text: event.payload.message ?? '',
+            type: (event.payload.type ?? 'text') as 'text' | 'binary' | 'info',
+            direction: 'in',
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ]);
       }
     });
 
-    const unlistenStatus = listen<any>('ws-status', (event) => {
+    const unlistenStatus = listen<WsEventPayload>('ws-status', (event) => {
       if (event.payload.connectionId === id) {
-        setStatus(event.payload.status);
+        setStatus(
+          (event.payload.status ?? 'disconnected') as 'connected' | 'disconnected' | 'connecting',
+        );
       }
     });
 
     return () => {
-      unlistenMsg.then(u => u());
-      unlistenStatus.then(u => u());
+      unlistenMsg.then((u) => u());
+      unlistenStatus.then((u) => u());
     };
   }, [id]);
 
@@ -57,8 +69,8 @@ export function WebSocketDebugger({ id, url }: WebSocketDebuggerProps) {
     setStatus('connecting');
     try {
       await invoke('ws_connect', { id, url });
-    } catch (e: any) {
-      toast.error("WebSocket connection failed", { description: e });
+    } catch (e) {
+      toast.error('WebSocket connection failed', { description: String(e) });
       setStatus('disconnected');
     }
   };
@@ -66,22 +78,27 @@ export function WebSocketDebugger({ id, url }: WebSocketDebuggerProps) {
   const handleDisconnect = async () => {
     try {
       await invoke('ws_disconnect', { id });
-    } catch (e) {}
+    } catch {
+      // Best effort: failures here must not break the surrounding flow.
+    }
   };
 
   const handleSend = async () => {
     if (!input || status !== 'connected') return;
     try {
       await invoke('ws_send', { id, message: input });
-      setMessages(prev => [...prev.slice(-99), {
-        text: input,
-        type: 'text',
-        direction: 'out',
-        timestamp: new Date().toLocaleTimeString()
-      }]);
-      setInput("");
-    } catch (e) {
-      toast.error("Failed to send message");
+      setMessages((prev) => [
+        ...prev.slice(-99),
+        {
+          text: input,
+          type: 'text',
+          direction: 'out',
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
+      setInput('');
+    } catch {
+      toast.error('Failed to send message');
     }
   };
 
@@ -89,7 +106,11 @@ export function WebSocketDebugger({ id, url }: WebSocketDebuggerProps) {
     <div className="ws-debugger">
       <div className="ws-toolbar">
         <div className={`ws-status-indicator ${status}`}>
-          {status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting...' : 'Disconnected'}
+          {status === 'connected'
+            ? 'Connected'
+            : status === 'connecting'
+              ? 'Connecting...'
+              : 'Disconnected'}
         </div>
         <div className="ws-actions">
           {status === 'disconnected' ? (
@@ -121,9 +142,9 @@ export function WebSocketDebugger({ id, url }: WebSocketDebuggerProps) {
       </div>
 
       <div className="ws-input-area">
-        <input 
-          type="text" 
-          value={input} 
+        <input
+          type="text"
+          value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type message to send..."
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}

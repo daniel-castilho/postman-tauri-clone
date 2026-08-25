@@ -14,11 +14,13 @@ Sources of truth: `README.md`, `package.json`, `src-tauri/Cargo.toml`, `src-taur
 
 1. **Architecture Boundaries (Rust Backend):**
    `domain/` and `application/ports/` must **never import `infrastructure` or framework-specific code** (`tauri`, `reqwest`, `rquickjs`, `serde_json` IO, or file system adapters).
-   *Verification command before declaring task done:*
+   _Verification command before declaring task done:_
+
    ```bash
    grep -rEn "use crate::infrastructure" src-tauri/src/domain src-tauri/src/application/ports
    ```
-   *Must return 0 matches.*
+
+   _Must return 0 matches._
 
 2. **Frontend UI Boundary (React 19):**
    Business logic lives strictly in the Rust core (`domain` and `application` layers). **React components must remain thin presentation wrappers.** No HTTP requests, scripting evaluations, or secret encryption logic inside React components. React components only dispatch state updates via Zustand or call Tauri IPC `invoke()` handlers.
@@ -40,7 +42,7 @@ Sources of truth: `README.md`, `package.json`, `src-tauri/Cargo.toml`, `src-taur
    - `README.md` (Features / Roadmap if applicable)
    - `docs/progress.md` (Progress status)
    - `AGENTS.md` (Clear or update "Known technical debt" if touched)
-   *Work is NOT done while documentation describes a stale state.*
+     _Work is NOT done while documentation describes a stale state._
 
 8. **Test Suite Integrity:**
    `cargo check` and `npm run build` must pass without errors or warnings before declaring any turn or commit completed.
@@ -49,16 +51,16 @@ Sources of truth: `README.md`, `package.json`, `src-tauri/Cargo.toml`, `src-taur
 
 ## 🛠️ Commands Matrix
 
-| Purpose | Command | Location |
-| :--- | :--- | :--- |
-| **Run Dev Application (Tauri + Vite)** | `npm run tauri dev` | Root |
-| **Run Frontend Dev Server Only** | `npm run dev` | Root |
-| **Typecheck & Web Build** | `npm run build` | Root |
-| **Build Production Native Package** | `npm run tauri build` | Root |
-| **Rust Fast Compile Check** | `cargo check` | `src-tauri/` |
-| **Run Pure Rust Unit Tests** | `cargo test` | `src-tauri/` |
-| **Run Rust Linter (Clippy)** | `cargo clippy -- -D warnings` | `src-tauri/` |
-| **Automated Project Renaming** | `./rename_to_tyny_pulse.sh` | Root |
+| Purpose                                | Command                       | Location     |
+| :------------------------------------- | :---------------------------- | :----------- |
+| **Run Dev Application (Tauri + Vite)** | `npm run tauri dev`           | Root         |
+| **Run Frontend Dev Server Only**       | `npm run dev`                 | Root         |
+| **Typecheck & Web Build**              | `npm run build`               | Root         |
+| **Build Production Native Package**    | `npm run tauri build`         | Root         |
+| **Rust Fast Compile Check**            | `cargo check`                 | `src-tauri/` |
+| **Run Pure Rust Unit Tests**           | `cargo test`                  | `src-tauri/` |
+| **Run Rust Linter (Clippy)**           | `cargo clippy -- -D warnings` | `src-tauri/` |
+| **Automated Project Renaming**         | `./rename_to_tyny_pulse.sh`   | Root         |
 
 ---
 
@@ -100,6 +102,7 @@ tyny-pulse/
 ```
 
 ### Layer Rules
+
 - **Domain (`src-tauri/src/domain`)**: Pure Rust entities, value objects, and domain error definitions. No `reqwest`, no `tauri`, no `serde_json` IO.
 - **Application (`src-tauri/src/application`)**: Use-case orchestration (`ExecuteRequestService`, `LintOpenApiSpecService`). Implements business workflows against `ports/` traits.
 - **Infrastructure (`src-tauri/src/infrastructure`)**: Concrete adapters (`ReqwestAdapter`, `QuickJSScriptAdapter`, `AesVaultAdapter`, `JsonFileSystemAdapter`).
@@ -110,7 +113,8 @@ tyny-pulse/
 ## 📐 Conventions & Standards
 
 ### Rust Conventions
-- **Naming:** 
+
+- **Naming:**
   - Modules: `snake_case` (e.g. `execute_request_service.rs`)
   - Structs/Enums: `PascalCase` (e.g. `HttpRequest`, `HttpMethod`)
   - Traits (Ports): `*Port` (e.g. `HttpClientPort`, `ScriptEnginePort`, `VaultPort`)
@@ -119,6 +123,7 @@ tyny-pulse/
 - **DTOs for IPC:** Never return raw domain entities over Tauri IPC if they contain internal secrets. Always map to explicit IPC response DTOs.
 
 ### TypeScript / React Conventions
+
 - **Strict Typing:** `strict: true` in `tsconfig.json`. Prohibit `any` — use explicit interfaces or `unknown`.
 - **UI State:** Use Zustand (`src/store/`) for global state (active workspace, open tabs, active theme). Keep component-local UI state in `useState`.
 - **Icons & Styling:** Lucide React icons, Tailwind CSS / CSS Modules, Framer Motion for smooth animations.
@@ -140,6 +145,7 @@ tyny-pulse/
 ## 📝 Commit & Git Standards
 
 Follow **Conventional Commits**:
+
 - `feat:` New capability or user-facing feature
 - `fix:` Bug fix or error resolution
 - `refactor:` Code restructuring without changing behaviour
@@ -157,8 +163,9 @@ Items currently deferred or awaiting optimization. Do **not** silently introduce
 3. **Workspace File Watcher:** FileSystem adapter currently reads JSON files on demand; real-time file watcher (`notify` crate) planned for live multi-window sync.
 4. **Manual Binding Registration:** New IPC types must be added to the export list in `src-tauri/src/application/commands/export_ts_bindings.rs`; consider automating via a proc-macro or build script inventory.
 5. **UI Strings Still Portuguese:** The Rule 6 English-only sweep covered all code comments; user-facing UI strings in React components and AI prompt strings in `gemini_adapter.rs` remain Portuguese pending a product-copy decision.
-6. **Loose `any` Types at Store Edge:** `workspaceStore.ts` still uses `(state: any)` / `(c: any)` casts inside Zustand setters and event listeners; typing these against generated contracts is incremental follow-up work.
+6. **Loose `any` Types at Store Edge:** Resolved — the Zustand store now uses the curried typed `create<WorkspaceState>()(…)` form and all IPC payloads are typed against the generated contracts (`src/types/ipc.ts`). Enforced by `eslint` with `@typescript-eslint/no-explicit-any` at error level.
 7. **CLI stdout on Windows Release Builds:** Resolved by the dedicated `tyny-cli` bin target (`src-tauri/src/bin/tyny-cli.rs`), which carries no `windows_subsystem` attribute; the desktop `tyny-pulse` binary keeps GUI subsystem semantics and CLI parity in debug builds.
+8. **Consultative React Hooks Rules:** The new-generation `react-hooks/set-state-in-effect`, `react-hooks/immutability` and `react-hooks/exhaustive-deps` rules run as **warnings** in ESLint (see `eslint.config.mjs`) because fixing them requires an architectural pass over data-loading effects in every panel. Promote them to `error` after that refactor.
 
 ---
 

@@ -1,155 +1,162 @@
 .globals-modal {
-    width: 650px !important;
-    max-width: 95vw;
-    background: var(--bg-secondary) !important;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
+  width: 650px !important;
+  max-width: 95vw;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
 }
 
 .header-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .premium-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--text-main), var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--text-main), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .vars-manager {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
 }
 
 .vars-table-header {
-    display: flex;
-    padding: 0 12px 8px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  display: flex;
+  padding: 0 12px 8px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.col-key { flex: 0 0 40%; }
-.col-val { flex: 1; }
-.col-actions { width: 40px; text-align: right; }
+.col-key {
+  flex: 0 0 40%;
+}
+.col-val {
+  flex: 1;
+}
+.col-actions {
+  width: 40px;
+  text-align: right;
+}
 
 .vars-list {
-    max-height: 400px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .var-row {
-    display: flex;
-    align-items: center;
-    padding: 4px 12px;
-    gap: 12px;
-    border-radius: 6px;
-    transition: var(--transition);
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  gap: 12px;
+  border-radius: 6px;
+  transition: var(--transition);
 }
 
 .var-row:hover {
-    background: var(--bg-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .var-input {
-    width: 100%;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-main);
-    padding: 8px 10px;
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    border-radius: 4px;
-    transition: var(--transition);
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: var(--transition);
 }
 
 .var-input:focus {
-    background: var(--bg-color);
-    border-color: var(--accent-color);
-    outline: none;
-    box-shadow: 0 0 0 2px var(--accent-soft);
+  background: var(--bg-color);
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .delete-var-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 4px;
-    transition: var(--transition);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: var(--transition);
 }
 
 .delete-var-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .add-var-bubble-btn {
-    align-self: flex-start;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--accent-soft);
-    color: var(--accent-color);
-    border: 1px solid transparent;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-color);
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .add-var-bubble-btn:hover {
-    background: var(--accent-color);
-    color: white;
-    transform: translateY(-1px);
+  background: var(--accent-color);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .empty-vars {
-    padding: 40px;
-    text-align: center;
-    color: var(--text-muted);
-    font-style: italic;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .modal-footer {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .confirm-btn {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 24px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .confirm-btn:hover {
-    filter: brightness(1.1);
+  filter: brightness(1.1);
 }

@@ -3,12 +3,7 @@ import { toast } from 'sonner';
 import { useWorkspaceStore } from '../store/workspaceStore';
 
 export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStateAction<boolean>>) {
-  const { 
-    activeRequest, 
-    updateRequest, 
-    environments, 
-    setActiveEnvironment 
-  } = useWorkspaceStore();
+  const { activeRequest, updateRequest, environments, setActiveEnvironment } = useWorkspaceStore();
 
   // Global shortcuts
   useEffect(() => {
@@ -16,7 +11,7 @@ export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStat
       // Ctrl + P or Ctrl + K for Command Palette
       if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'k')) {
         e.preventDefault();
-        setShowCommandPalette(prev => !prev);
+        setShowCommandPalette((prev) => !prev);
       }
       // Ctrl + Enter for Send
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -28,7 +23,7 @@ export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStat
         e.preventDefault();
         if (activeRequest) {
           updateRequest(activeRequest);
-          toast.success("Requisição salva!");
+          toast.success('Requisição salva!');
         }
       }
       // Ctrl + 1, 2, 3... to switch environment
@@ -48,8 +43,8 @@ export function useShortcuts(setShowCommandPalette: React.Dispatch<React.SetStat
   // Listener for execution via Command Palette
   useEffect(() => {
     const handleTriggerSend = () => {
-       const sendBtn = document.querySelector('.send-btn') as HTMLButtonElement;
-       sendBtn?.click();
+      const sendBtn = document.querySelector('.send-btn') as HTMLButtonElement;
+      sendBtn?.click();
     };
     window.addEventListener('trigger-send', handleTriggerSend);
     return () => window.removeEventListener('trigger-send', handleTriggerSend);

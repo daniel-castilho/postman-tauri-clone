@@ -11,9 +11,9 @@ import type {
   CollectionItem,
   DesignSpec,
   Environment,
-  GlobalVariables,
   HttpRequest,
-  LintIssue,
+  SyncChange,
+  GlobalVariables,
 } from '../types/ipc';
 
 export type {
@@ -22,7 +22,6 @@ export type {
   DesignSpec,
   Environment,
   HttpRequest,
-  LintIssue,
 } from '../types/ipc';
 
 interface WorkspaceState {
@@ -30,13 +29,13 @@ interface WorkspaceState {
   activeRequest: HttpRequest | null;
   collections: Collection[];
   environments: Environment[];
-   activeEnvironmentId: string | null;
+  activeEnvironmentId: string | null;
   history: HttpRequest[];
   isLoading: boolean;
   error: string | null;
   openTabs: HttpRequest[];
   activeTabId: string | null;
-  
+
   setWorkspacePath: (path: string) => void;
   setActiveRequest: (request: HttpRequest | null) => void;
   setActiveRequestTab: (tabId: string | null) => void;
@@ -54,7 +53,7 @@ interface WorkspaceState {
   loadCollections: () => Promise<void>;
   saveCollection: (collection: Collection) => Promise<void>;
   deleteCollection: (id: string) => Promise<void>;
-  
+
   loadEnvironments: () => Promise<void>;
   saveEnvironments: () => Promise<void>;
 
@@ -70,11 +69,11 @@ interface WorkspaceState {
   importCollection: () => Promise<void>;
   reorderItems: (collectionId: string, newItems: CollectionItem[]) => Promise<void>;
   exportWorkspace: () => Promise<void>;
-  
-  syncQueue: any[];
+
+  syncQueue: SyncChange[];
   isOnline: boolean;
   processSyncQueue: () => Promise<void>;
-  addToSyncQueue: (change: any) => void;
+  addToSyncQueue: (change: SyncChange) => void;
 
   designs: DesignSpec[];
   activeDesignId: string | null;
@@ -83,29 +82,32 @@ interface WorkspaceState {
   saveDesign: (design: DesignSpec) => Promise<void>;
   createDesign: (name: string, format: string) => Promise<void>;
   deleteDesign: (id: string) => Promise<void>;
-  
+
   sidebarMode: 'Collections' | 'Designs' | 'History';
   setSidebarMode: (mode: 'Collections' | 'Designs' | 'History') => void;
 }
 
-
-export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => ({
+export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   workspacePath: '', // The user will set this via UI or the native desktop FilePicker
   activeRequest: null,
   sidebarMode: 'Collections',
-  setSidebarMode: (mode: any) => set({ sidebarMode: mode }),
+  setSidebarMode: (mode) => set({ sidebarMode: mode }),
   collections: [],
-  environments: [{ 
-    id: 'env_local', 
-    name: 'Local', 
-    variables: [{ 
-      key: 'BASE_URL', 
-      initial_value: 'http://localhost:3000', 
-      current_value: 'http://localhost:3000', 
-      var_type: 'Public', 
-      enabled: true 
-    }] 
-  }],
+  environments: [
+    {
+      id: 'env_local',
+      name: 'Local',
+      variables: [
+        {
+          key: 'BASE_URL',
+          initial_value: 'http://localhost:3000',
+          current_value: 'http://localhost:3000',
+          var_type: 'Public',
+          enabled: true,
+        },
+      ],
+    },
+  ],
   activeEnvironmentId: 'env_local',
   history: [],
   isLoading: false,
@@ -115,35 +117,35 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
   syncQueue: [],
   isOnline: true,
 
-  addToSyncQueue: (change: any) => {
-    set((state: any) => ({ syncQueue: [...state.syncQueue, change] }));
+  addToSyncQueue: (change: SyncChange) => {
+    set((state) => ({ syncQueue: [...state.syncQueue, change] }));
     get().processSyncQueue();
   },
 
   processSyncQueue: async () => {
-    const { syncQueue, isOnline } = get();
+    const { syncQueue } = get();
     if (syncQueue.length === 0) return;
 
     try {
       // Try to process the whole queue
       for (const change of [...syncQueue]) {
-         await invoke('sync_resource_change', change);
-         // Remove from the queue on success
-         set((state: any) => ({ syncQueue: state.syncQueue.filter((c: any) => c !== change) }));
+        await invoke('sync_resource_change', change);
+        // Remove from the queue on success
+        set((state) => ({ syncQueue: state.syncQueue.filter((c) => c !== change) }));
       }
       set({ isOnline: true });
-    } catch (err) {
-      console.warn("Sync temporarily offline, retrying in 5s...");
+    } catch {
+      console.warn('Sync temporarily offline, retrying in 5s...');
       set({ isOnline: false });
-      setTimeout(() => { 
-        set({ isOnline: true }); 
-        get().processSyncQueue(); 
+      setTimeout(() => {
+        set({ isOnline: true });
+        get().processSyncQueue();
       }, 5000);
     }
   },
 
   setWorkspacePath: (path: string) => set({ workspacePath: path }),
-  
+
   setActiveRequest: (request: HttpRequest | null) => {
     if (request) {
       get().addTab(request);
@@ -153,27 +155,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
   },
 
   setActiveRequestTab: (tabId: string | null) => {
-    const tab = get().openTabs.find((t: any) => t.id === tabId);
+    const tab = get().openTabs.find((t) => t.id === tabId);
     set({ activeTabId: tabId, activeRequest: tab || null });
   },
 
   addTab: (request: HttpRequest) => {
-    set((state: any) => {
-      const exists = state.openTabs.some((t: any) => t.id === request.id);
+    set((state) => {
+      const exists = state.openTabs.some((t) => t.id === request.id);
       if (exists) {
         return { activeTabId: request.id, activeRequest: request };
       }
-      return { 
+      return {
         openTabs: [...state.openTabs, request],
         activeTabId: request.id,
-        activeRequest: request
+        activeRequest: request,
       };
     });
   },
 
   closeTab: (tabId: string) => {
-    set((state: any) => {
-      const newTabs = state.openTabs.filter((t: any) => t.id !== tabId);
+    set((state) => {
+      const newTabs = state.openTabs.filter((t) => t.id !== tabId);
       let newActiveId = state.activeTabId;
       let newActiveRequest = state.activeRequest;
 
@@ -182,10 +184,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
         newActiveRequest = newTabs.length > 0 ? newTabs[newTabs.length - 1] : null;
       }
 
-      return { 
-        openTabs: newTabs, 
+      return {
+        openTabs: newTabs,
         activeTabId: newActiveId,
-        activeRequest: newActiveRequest
+        activeRequest: newActiveRequest,
       };
     });
   },
@@ -193,38 +195,41 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
   setActiveEnvironment: (id: string | null) => set({ activeEnvironmentId: id }),
 
   addEnvironment: async (env: Environment) => {
-    set((state: any) => ({ 
+    set((state) => ({
       environments: [...state.environments, env],
-      activeEnvironmentId: state.activeEnvironmentId || env.id
+      activeEnvironmentId: state.activeEnvironmentId || env.id,
     }));
     await get().saveEnvironments();
   },
 
   updateEnvironment: async (env: Environment) => {
-    set((state: any) => ({
-      environments: state.environments.map((e: any) => e.id === env.id ? env : e)
+    set((state) => ({
+      environments: state.environments.map((e) => (e.id === env.id ? env : e)),
     }));
     await get().saveEnvironments();
-    
+
     // NEW: use the robust sync queue
     get().addToSyncQueue({
-      resourceType: 'Environment',
-      resourceId: env.id,
+      id: crypto.randomUUID(),
+      resource_type: 'Environment',
+      resource_id: env.id,
       operation: 'Update',
-      data: JSON.stringify(env)
+      data: JSON.stringify(env),
+      timestamp: new Date().toISOString(),
     });
   },
 
-  addToHistory: (request: HttpRequest) => set((state: any) => ({
-    history: [request, ...state.history].slice(0, 50) // Limite de 50 itens
-  })),
+  addToHistory: (request: HttpRequest) =>
+    set((state) => ({
+      history: [request, ...state.history].slice(0, 50), // Limite de 50 itens
+    })),
 
   clearHistory: () => set({ history: [] }),
 
   updateRequest: async (updatedRequest: HttpRequest) => {
     const { collections, saveCollection } = get();
     let targetCollection: Collection | null = null;
-    let newCollections = [...collections];
+    const newCollections = [...collections];
 
     // Recursive helper to find and update the request
     const updateInItems = (items: CollectionItem[]): boolean => {
@@ -240,7 +245,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       return false;
     };
 
-    for (let c of newCollections) {
+    for (const c of newCollections) {
       if (updateInItems(c.items)) {
         targetCollection = c;
         break;
@@ -255,10 +260,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
 
       // NEW: use the robust sync queue
       get().addToSyncQueue({
-        resourceType: 'Request',
-        resourceId: updatedRequest.id,
+        id: crypto.randomUUID(),
+        resource_type: 'Request',
+        resource_id: updatedRequest.id,
         operation: 'Update',
-        data: JSON.stringify(updatedRequest)
+        data: JSON.stringify(updatedRequest),
+        timestamp: new Date().toISOString(),
       });
     }
   },
@@ -269,7 +276,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       name: name,
       description: null,
       items: [],
-      variables: {}
+      variables: {},
     };
     await get().saveCollection(newCollection);
     await get().loadCollections();
@@ -279,18 +286,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     const { workspacePath, loadCollections } = get();
     const selected = await open({
       multiple: false,
-      filters: [{ name: 'JSON', extensions: ['json'] }]
+      filters: [{ name: 'JSON', extensions: ['json'] }],
     });
 
     if (selected && typeof selected === 'string') {
       try {
-        await invoke('import_collection_by_path', { 
-          collectionPath: selected, 
-          workspacePath 
+        await invoke('import_collection_by_path', {
+          collectionPath: selected,
+          workspacePath,
         });
         await loadCollections();
       } catch (err) {
-        console.error("Import failed:", err);
+        console.error('Import failed:', err);
       }
     }
   },
@@ -306,7 +313,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       for (const item of items) {
         newItems.push(item);
         if ('Request' in item && item.Request.id === requestId) {
-          originalReq = { ...item.Request, id: `req_${Date.now()}`, name: `${item.Request.name} (Copy)` };
+          originalReq = {
+            ...item.Request,
+            id: `req_${Date.now()}`,
+            name: `${item.Request.name} (Copy)`,
+          };
           newItems.push({ Request: originalReq });
         } else if ('Folder' in item) {
           item.Folder.items = findAndClone(item.Folder.items);
@@ -315,7 +326,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       return newItems;
     };
 
-    const newCollections = collections.map((col: any) => {
+    const newCollections = collections.map((col) => {
       const updatedItems = findAndClone(col.items);
       if (originalReq) {
         targetCollection = { ...col, items: updatedItems };
@@ -332,12 +343,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
 
   reorderItems: async (collectionId: string, newItems: CollectionItem[]) => {
     const { collections, saveCollection } = get();
-    const targetColl = collections.find((c: any) => c.id === collectionId);
+    const targetColl = collections.find((c) => c.id === collectionId);
     if (!targetColl) return;
 
     const updatedCollection = { ...targetColl, items: newItems };
-    const newCollections = collections.map((c: any) => c.id === collectionId ? updatedCollection : c);
-    
+    const newCollections = collections.map((c) => (c.id === collectionId ? updatedCollection : c));
+
     set({ collections: newCollections });
     await saveCollection(updatedCollection);
   },
@@ -346,44 +357,44 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     const { workspacePath } = get();
     const filePath = await save({
       filters: [{ name: 'JSON', extensions: ['json'] }],
-      defaultPath: 'workspace-bundle.json'
+      defaultPath: 'workspace-bundle.json',
     });
 
     if (filePath) {
       try {
         await invoke('export_workspace', { workspacePath, exportPath: filePath });
-        console.log("Workspace exported successfully to", filePath);
+        console.log('Workspace exported successfully to', filePath);
       } catch (err) {
-        console.error("Export failed:", err);
+        console.error('Export failed:', err);
       }
     }
   },
 
   addRequestToCollection: async (collectionId: string) => {
     const { collections, saveCollection, setActiveRequest } = get();
-    const targetColl = collections.find((c: any) => c.id === collectionId);
+    const targetColl = collections.find((c) => c.id === collectionId);
     if (!targetColl) return;
 
     const defaultRequest: HttpRequest = {
       id: `req_${Date.now()}`,
-      name: "New Request",
+      name: 'New Request',
       description: null,
-      method: "GET",
-      url: "https://api.example.com",
+      method: 'GET',
+      url: 'https://api.example.com',
       headers: [],
       body: null,
       auth: { type: 'NoAuth' },
       variables: {},
       scripts: {
-        preRequest: "",
-        tests: ""
+        preRequest: '',
+        tests: '',
       },
-      grpc_config: null
+      grpc_config: null,
     };
 
     const updatedCollection = {
       ...targetColl,
-      items: [...targetColl.items, { Request: defaultRequest }]
+      items: [...targetColl.items, { Request: defaultRequest }],
     };
 
     await saveCollection(updatedCollection);
@@ -392,12 +403,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
 
   addFolderToCollection: async (collectionId: string, name: string) => {
     const { collections, saveCollection } = get();
-    const targetColl = collections.find((c: any) => c.id === collectionId);
+    const targetColl = collections.find((c) => c.id === collectionId);
     if (!targetColl) return;
 
     const updatedCollection = {
       ...targetColl,
-      items: [...targetColl.items, { Folder: { name, description: "", items: [] } }]
+      items: [...targetColl.items, { Folder: { name, description: '', items: [] } }],
     };
 
     await saveCollection(updatedCollection);
@@ -406,7 +417,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
   deleteRequest: async (requestId: string) => {
     const { collections, saveCollection, activeRequest, setActiveRequest } = get();
     let targetCollection: Collection | undefined;
-    
+
     for (const col of collections) {
       let found = false;
       const searchRecursive = (items: CollectionItem[]) => {
@@ -425,23 +436,30 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     if (!targetCollection) return;
 
     const deleteRecursive = (items: CollectionItem[]): CollectionItem[] => {
-      return items.filter(item => {
-        if ('Request' in item && item.Request.id === requestId) return false;
-        return true;
-      }).map(item => {
-        if ('Folder' in item) {
-          return { ...item, Folder: { ...item.Folder, items: deleteRecursive(item.Folder.items) } };
-        }
-        return item;
-      });
+      return items
+        .filter((item) => {
+          if ('Request' in item && item.Request.id === requestId) return false;
+          return true;
+        })
+        .map((item) => {
+          if ('Folder' in item) {
+            return {
+              ...item,
+              Folder: { ...item.Folder, items: deleteRecursive(item.Folder.items) },
+            };
+          }
+          return item;
+        });
     };
 
     const updatedCollection = {
       ...targetCollection,
-      items: deleteRecursive(targetCollection.items)
+      items: deleteRecursive(targetCollection.items),
     };
 
-    const newCollections = collections.map((c: any) => c.id === updatedCollection.id ? updatedCollection : c);
+    const newCollections = collections.map((c) =>
+      c.id === updatedCollection.id ? updatedCollection : c,
+    );
     set({ collections: newCollections });
     await saveCollection(updatedCollection);
 
@@ -457,14 +475,14 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
         multiple: false,
         title: 'Selecione a pasta do Workspace',
       });
-      
+
       if (selectedPath && typeof selectedPath === 'string') {
         set({ workspacePath: selectedPath });
         await get().loadCollections();
         await get().loadEnvironments();
         await get().loadGlobals();
       }
-    } catch (error: any) {
+    } catch (error) {
       set({ error: JSON.stringify(error) });
     }
   },
@@ -477,7 +495,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     try {
       const collections: Collection[] = await invoke('load_collections', { workspacePath });
       set({ collections, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({ error: JSON.stringify(error), isLoading: false });
     }
   },
@@ -490,7 +508,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     try {
       await invoke('save_collection', { workspacePath, collection });
       await loadCollections(); // Reload to reflect disk changes
-    } catch (error: any) {
+    } catch (error) {
       set({ error: JSON.stringify(error), isLoading: false });
     }
   },
@@ -503,7 +521,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     try {
       await invoke('delete_collection', { workspacePath, collectionId: id });
       await loadCollections();
-    } catch (error: any) {
+    } catch (error) {
       set({ error: JSON.stringify(error), isLoading: false });
     }
   },
@@ -518,8 +536,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       if (environments.length > 0 && !get().activeEnvironmentId) {
         set({ activeEnvironmentId: environments[0].id });
       }
-    } catch (error: any) {
-      console.error("Failed to load environments:", error);
+    } catch (error) {
+      console.error('Failed to load environments:', error);
     }
   },
 
@@ -529,8 +547,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
 
     try {
       await invoke('save_environments', { workspacePath, environments });
-    } catch (error: any) {
-      console.error("Failed to save environments:", error);
+    } catch (error) {
+      console.error('Failed to save environments:', error);
     }
   },
 
@@ -541,27 +559,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     const { workspacePath } = get();
     if (!workspacePath) return;
     try {
-      const globals: any = await invoke('load_globals', { workspacePath });
+      const globals = await invoke<GlobalVariables>('load_globals', { workspacePath });
       set({ globals: globals || { variables: {} } });
     } catch (err) {
-      console.error("Failed to load globals:", err);
+      console.error('Failed to load globals:', err);
     }
   },
 
-  saveGlobals: async (globals: any) => {
+  saveGlobals: async (globals: GlobalVariables) => {
     const { workspacePath } = get();
     if (!workspacePath) return;
     set({ globals });
     try {
       await invoke('save_globals', { workspacePath, globals });
     } catch (err) {
-      console.error("Failed to save globals:", err);
+      console.error('Failed to save globals:', err);
     }
   },
 
   setSessionVariable: (key: string, value: string) => {
-    set((state: any) => ({
-      sessionVariables: { ...state.sessionVariables, [key]: value }
+    set((state) => ({
+      sessionVariables: { ...state.sessionVariables, [key]: value },
     }));
   },
 
@@ -577,7 +595,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
       const designs: DesignSpec[] = await invoke('list_designs', { workspacePath });
       set({ designs });
     } catch (err) {
-      console.error("Failed to load designs:", err);
+      console.error('Failed to load designs:', err);
     }
   },
 
@@ -586,11 +604,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     if (!workspacePath) return;
     try {
       await invoke('save_design', { workspacePath, design });
-      set((state: any) => ({
-        designs: state.designs.map((d: any) => d.id === design.id ? design : d)
+      set((state) => ({
+        designs: state.designs.map((d) => (d.id === design.id ? design : d)),
       }));
     } catch (err) {
-      console.error("Failed to save design:", err);
+      console.error('Failed to save design:', err);
     }
   },
 
@@ -599,12 +617,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     if (!workspacePath) return;
     try {
       const newDesign: DesignSpec = await invoke('create_design', { workspacePath, name, format });
-      set((state: any) => ({
+      set((state) => ({
         designs: [...state.designs, newDesign],
-        activeDesignId: newDesign.id
+        activeDesignId: newDesign.id,
       }));
     } catch (err) {
-      console.error("Failed to create design:", err);
+      console.error('Failed to create design:', err);
     }
   },
 
@@ -613,44 +631,43 @@ export const useWorkspaceStore = create<WorkspaceState>((set: any, get: any) => 
     if (!workspacePath) return;
     try {
       await invoke('delete_design', { workspacePath, designId: id });
-      set((state: any) => ({
-        designs: state.designs.filter((d: any) => d.id !== id),
-        activeDesignId: state.activeDesignId === id ? null : state.activeDesignId
+      set((state) => ({
+        designs: state.designs.filter((d) => d.id !== id),
+        activeDesignId: state.activeDesignId === id ? null : state.activeDesignId,
       }));
     } catch (err) {
-      console.error("Failed to delete design:", err);
+      console.error('Failed to delete design:', err);
     }
-  }
+  },
 }));
 
 // Global listener for real-time synchronization
-listen('sync-change', (event: any) => {
+listen<SyncChange>('sync-change', (event) => {
   const change = event.payload;
   const store = useWorkspaceStore.getState();
 
-  console.log("🔄 Sync Change Received:", change);
-
   if (change.resource_type === 'Request' && change.operation === 'Update') {
     const updatedReq = JSON.parse(change.data);
-    
+
     // Avoid a loop if this is the same change we sent (future improvement: client IDs)
     if (store.activeRequest?.id === updatedReq.id) {
-       // If it is the one being edited, update the UI carefully
-       // useWorkspaceStore.setState({ activeRequest: updatedReq });
+      // If it is the one being edited, update the UI carefully
+      // useWorkspaceStore.setState({ activeRequest: updatedReq });
     }
 
     // Update the collection tree
     const newCollections = [...store.collections];
     let found = false;
 
-    const updateRecursive = (items: any[]) => {
+    const updateRecursive = (items: CollectionItem[]) => {
       for (let i = 0; i < items.length; i++) {
-        if (items[i].Request?.id === updatedReq.id) {
+        const entry = items[i];
+        if ('Request' in entry && entry.Request.id === updatedReq.id) {
           items[i] = { Request: updatedReq };
           found = true;
           return;
         }
-        if (items[i].Folder) updateRecursive(items[i].Folder.items);
+        if ('Folder' in entry) updateRecursive(entry.Folder.items);
       }
     };
 
@@ -665,22 +682,21 @@ listen('sync-change', (event: any) => {
   }
 
   if (change.resource_type === 'Environment' && change.operation === 'Update') {
-    const updatedEnv = JSON.parse(change.data);
-    const existingEnv = store.environments.find((e: any) => e.id === updatedEnv.id);
-    
+    const updatedEnv = JSON.parse(change.data) as Environment;
+    const existingEnv = store.environments.find((e) => e.id === updatedEnv.id);
+
     if (existingEnv) {
-       // Merge while keeping local values (current_value)
-       updatedEnv.variables = updatedEnv.variables.map((v: any) => {
-          const localVar = existingEnv.variables.find((lv: any) => lv.key === v.key);
-          return { 
-            ...v, 
-            current_value: localVar ? localVar.current_value : v.initial_value 
-          };
-       });
+      // Merge while keeping local values (current_value)
+      updatedEnv.variables = updatedEnv.variables.map((v) => {
+        const localVar = existingEnv.variables.find((lv) => lv.key === v.key);
+        return {
+          ...v,
+          current_value: localVar ? localVar.current_value : v.initial_value,
+        };
+      });
     }
 
-    const newEnvs = store.environments.map((e: any) => e.id === updatedEnv.id ? updatedEnv : e);
+    const newEnvs = store.environments.map((e) => (e.id === updatedEnv.id ? updatedEnv : e));
     useWorkspaceStore.setState({ environments: newEnvs });
   }
 });
-

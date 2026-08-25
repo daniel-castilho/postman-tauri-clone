@@ -31,16 +31,16 @@ S8 Create GitHub Actions CI template (.github/workflows/tyny-cli-ci.yml)
 
 ## Stories Breakdown
 
-| ID | Story Title | Priority | Target Modules / Components | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **S1** ✅ | Implement CLI argument parser in `presentation/cli.rs` | Must | `src-tauri/src/presentation/cli.rs` | Parse `run`, `--env/-e`, `--globals/-g`, `--var/-v`, `--report/-r`, `--format/-f`, `--help` |
-| **S2** ✅ | Wire CLI subcommand interceptor before Tauri GUI initialization | Must | `src-tauri/src/main.rs` | `is_cli_mode()` + `run_headless()` per implementation sequence Step 2 |
-| **S3** ✅ | Adapt `RunCollectionUseCase` for headless execution over Reqwest & QuickJS | Must | `src-tauri/src/application/services/` | Reused via library crate; zero Webview/Tauri IPC coupling |
-| **S4** ✅ | Implement CLI variable overrides (`--var key=value`, `--env`, `--globals`) | Must | `src-tauri/src/presentation/cli.rs` | Merge environment files with command-line variable overrides |
-| **S5** ✅ | Implement JSON execution report writer in `infrastructure/reporting/` | Must | `src-tauri/src/infrastructure/reporting/json_reporter.rs` | Spec §5.1 envelope: version, request/assertion summary, durationMs |
-| **S6** ✅ | Implement JUnit XML report writer in `infrastructure/reporting/` | Must | `src-tauri/src/infrastructure/reporting/junit_reporter.rs` | testsuites/testsuite/testcase/failure with errors + classname + time |
-| **S7** ✅ | Implement standardized process exit codes (`0`, `1`, `2`, `3`) | Must | `src-tauri/src/presentation/cli.rs` | Covered by integration tests incl. real HTTP mock server |
-| **S8** ✅ | Create GitHub Actions CI template (`.github/workflows/tyny-cli-ci.yml`) | Must | `.github/workflows/tyny-cli-ci.yml`, `README.md` | workflow_dispatch example building tyny-cli and running the fixture |
+| ID        | Story Title                                                                | Priority | Target Modules / Components                                | Notes                                                                                       |
+| :-------- | :------------------------------------------------------------------------- | :------- | :--------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| **S1** ✅ | Implement CLI argument parser in `presentation/cli.rs`                     | Must     | `src-tauri/src/presentation/cli.rs`                        | Parse `run`, `--env/-e`, `--globals/-g`, `--var/-v`, `--report/-r`, `--format/-f`, `--help` |
+| **S2** ✅ | Wire CLI subcommand interceptor before Tauri GUI initialization            | Must     | `src-tauri/src/main.rs`                                    | `is_cli_mode()` + `run_headless()` per implementation sequence Step 2                       |
+| **S3** ✅ | Adapt `RunCollectionUseCase` for headless execution over Reqwest & QuickJS | Must     | `src-tauri/src/application/services/`                      | Reused via library crate; zero Webview/Tauri IPC coupling                                   |
+| **S4** ✅ | Implement CLI variable overrides (`--var key=value`, `--env`, `--globals`) | Must     | `src-tauri/src/presentation/cli.rs`                        | Merge environment files with command-line variable overrides                                |
+| **S5** ✅ | Implement JSON execution report writer in `infrastructure/reporting/`      | Must     | `src-tauri/src/infrastructure/reporting/json_reporter.rs`  | Spec §5.1 envelope: version, request/assertion summary, durationMs                          |
+| **S6** ✅ | Implement JUnit XML report writer in `infrastructure/reporting/`           | Must     | `src-tauri/src/infrastructure/reporting/junit_reporter.rs` | testsuites/testsuite/testcase/failure with errors + classname + time                        |
+| **S7** ✅ | Implement standardized process exit codes (`0`, `1`, `2`, `3`)             | Must     | `src-tauri/src/presentation/cli.rs`                        | Covered by integration tests incl. real HTTP mock server                                    |
+| **S8** ✅ | Create GitHub Actions CI template (`.github/workflows/tyny-cli-ci.yml`)    | Must     | `.github/workflows/tyny-cli-ci.yml`, `README.md`           | workflow_dispatch example building tyny-cli and running the fixture                         |
 
 ---
 

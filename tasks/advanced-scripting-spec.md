@@ -33,12 +33,12 @@ script source ──> QuickJsScriptRunner (setup script)
 
 ## 3. Library Registry
 
-| Module name | Version | Origin | License |
-| :--- | :--- | :--- | :--- |
-| `lodash` | 4.17.21 | cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js | MIT |
-| `dayjs` | 1.x | cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js | MIT |
-| `crypto-js` | 4.x | cdn.jsdelivr.net/npm/crypto-js@4/crypto-js.min.js | MIT |
-| `uuid` | 8.3.2 (UMD) | cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuid.min.js | MIT |
+| Module name | Version     | Origin                                               | License |
+| :---------- | :---------- | :--------------------------------------------------- | :------ |
+| `lodash`    | 4.17.21     | cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js    | MIT     |
+| `dayjs`     | 1.x         | cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js            | MIT     |
+| `crypto-js` | 4.x         | cdn.jsdelivr.net/npm/crypto-js@4/crypto-js.min.js    | MIT     |
+| `uuid`      | 8.3.2 (UMD) | cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuid.min.js | MIT     |
 
 Files live in `src-tauri/assets/script-libs/`; attribution goes to `src-tauri/assets/script-libs/THIRD-PARTY-NOTICES.md`.
 
@@ -50,10 +50,10 @@ Files live in `src-tauri/assets/script-libs/`; attribution goes to `src-tauri/as
 
 ## 5. IPC Surface
 
-| Command | Input | Output |
-| :--- | :--- | :--- |
-| `list_script_libraries` | — | `Vec<ScriptLibraryInfo>` (name, version, description, enabled) |
-| `set_script_library_enabled` | `name: String`, `enabled: bool` | updated `Vec<ScriptLibraryInfo>` |
+| Command                      | Input                           | Output                                                         |
+| :--------------------------- | :------------------------------ | :------------------------------------------------------------- |
+| `list_script_libraries`      | —                               | `Vec<ScriptLibraryInfo>` (name, version, description, enabled) |
+| `set_script_library_enabled` | `name: String`, `enabled: bool` | updated `Vec<ScriptLibraryInfo>`                               |
 
 `ScriptLibraryInfo` derives `TS` (bindings exported through the existing `cargo test export_ts_bindings` pipeline; manual registration step per debt item #4).
 

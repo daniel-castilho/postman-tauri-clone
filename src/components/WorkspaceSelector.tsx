@@ -15,7 +15,16 @@ export function WorkspaceSelector() {
           <span>Abrir Workspace</span>
         </button>
         {error && (
-          <div style={{ marginTop: '16px', color: '#fca5a5', fontSize: '12px', background: '#3f1515', padding: '8px', borderRadius: '4px' }}>
+          <div
+            style={{
+              marginTop: '16px',
+              color: '#fca5a5',
+              fontSize: '12px',
+              background: '#3f1515',
+              padding: '8px',
+              borderRadius: '4px',
+            }}
+          >
             Erro: {error}
           </div>
         )}

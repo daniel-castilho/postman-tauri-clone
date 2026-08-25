@@ -12,16 +12,20 @@ export const GitDiffViewer: React.FC<Props> = ({ diff, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content git-diff-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-content git-diff-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="title-area">
             <h3>{diff.path}</h3>
           </div>
-          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
         </div>
         <div className="git-diff-body">
           {diff.chunks.length === 0 && (
-            <div className="git-diff-empty">No textual changes (file may be binary or identical).</div>
+            <div className="git-diff-empty">
+              No textual changes (file may be binary or identical).
+            </div>
           )}
           {diff.chunks.map((chunk, index) => (
             <div key={index} className={`git-diff-line git-diff-${chunk.change_type}`}>

@@ -31,14 +31,14 @@ S6 Docs sync (README scripting section, progress tracker) + full gates
 
 ## Stories Breakdown
 
-| ID | Story Title | Priority | Target Modules / Components | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **S1** ✅ | Vendor 4 MIT library bundles + notices file | Must | `src-tauri/assets/script-libs/` | Downloaded from jsDelivr pinned versions; ~151 KB total |
-| **S2** ✅ | Registry module + per-bundle smoke tests | Must | `infrastructure/scripting/libraries.rs` | Each source evaluates and exports via CJS wrapper (NIST SHA-256 vector included) |
-| **S3** ✅ | `require()` shim in runner setup script | Must | `infrastructure/scripting/quickjs_runner.rs` | Only enabled libs preloaded; unknown-module error lists installed modules |
-| **S4** ✅ | Settings persistence + IPC commands + bindings | Must | `presentation/commands.rs`, `application/commands/export_ts_bindings.rs` | `{ disabled: [] }` workspace JSON; re-read per execution |
-| **S5** ✅ | Package Manager UI section | Must | `src/components/WorkspaceSettings.tsx` | Thin wrapper: invoke + toggle state only |
-| **S6** ✅ | Docs sync + verification gates | Must | `README.md`, `docs/progress.md`, backlog DoD | clippy / cargo test 64 / npm build / boundary grep all green |
+| ID        | Story Title                                    | Priority | Target Modules / Components                                              | Notes                                                                            |
+| :-------- | :--------------------------------------------- | :------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| **S1** ✅ | Vendor 4 MIT library bundles + notices file    | Must     | `src-tauri/assets/script-libs/`                                          | Downloaded from jsDelivr pinned versions; ~151 KB total                          |
+| **S2** ✅ | Registry module + per-bundle smoke tests       | Must     | `infrastructure/scripting/libraries.rs`                                  | Each source evaluates and exports via CJS wrapper (NIST SHA-256 vector included) |
+| **S3** ✅ | `require()` shim in runner setup script        | Must     | `infrastructure/scripting/quickjs_runner.rs`                             | Only enabled libs preloaded; unknown-module error lists installed modules        |
+| **S4** ✅ | Settings persistence + IPC commands + bindings | Must     | `presentation/commands.rs`, `application/commands/export_ts_bindings.rs` | `{ disabled: [] }` workspace JSON; re-read per execution                         |
+| **S5** ✅ | Package Manager UI section                     | Must     | `src/components/WorkspaceSettings.tsx`                                   | Thin wrapper: invoke + toggle state only                                         |
+| **S6** ✅ | Docs sync + verification gates                 | Must     | `README.md`, `docs/progress.md`, backlog DoD                             | clippy / cargo test 64 / npm build / boundary grep all green                     |
 
 ---
 

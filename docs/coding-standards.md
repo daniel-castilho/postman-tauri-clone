@@ -6,11 +6,11 @@ Practical reference for solo and AI-assisted development of **Tyny Pulse**. Goal
 
 **Relationship to other docs:**
 
-| Doc | Wins when |
-| :--- | :--- |
-| `AGENTS.md` | Project conventions, release flow, hard agent rules |
-| **This file** | Day-to-day coding detail that does not fit in `AGENTS.md` |
-| `docs/lessons.md` | Durable rules learned the hard way |
+| Doc               | Wins when                                                 |
+| :---------------- | :-------------------------------------------------------- |
+| `AGENTS.md`       | Project conventions, release flow, hard agent rules       |
+| **This file**     | Day-to-day coding detail that does not fit in `AGENTS.md` |
+| `docs/lessons.md` | Durable rules learned the hard way                        |
 
 Where this file conflicts with `AGENTS.md`, **`AGENTS.md` wins**.
 
@@ -18,20 +18,20 @@ Where this file conflicts with `AGENTS.md`, **`AGENTS.md` wins**.
 
 ## 1. Naming Conventions
 
-| Element | Convention | Example |
-| :--- | :--- | :--- |
-| **Rust Modules** | `snake_case` | `execute_request_service.rs`, `variable_resolver_adapter.rs` |
-| **Rust Structs & Enums** | `PascalCase` | `HttpRequest`, `HttpResponse`, `HttpMethod`, `DomainError` |
-| **Domain Models & Value Objects** | `PascalCase`; IDs as `*Id` | `Request`, `Collection`, `Environment`, `RequestId`, `WorkspaceId` |
-| **Outbound Ports (Traits)** | `*Port` | `HttpClientPort`, `ScriptEnginePort`, `VaultPort`, `FileSystemPort` |
-| **Infrastructure Adapters** | `*Adapter` | `ReqwestAdapter`, `QuickJSAdapter`, `AesVaultAdapter`, `JsonFileSystemAdapter` |
-| **Use-Case Services** | `*Service` | `ExecuteRequestService`, `RunCollectionService`, `LintSpecService` |
-| **Tauri Commands** | `snake_case` | `execute_http_request`, `save_workspace`, `open_vault` |
-| **React Components** | `PascalCase` | `RequestEditor.tsx`, `ResponsePanel.tsx`, `WorkspaceSelector.tsx` |
-| **Zustand Stores** | `use*Store` | `useWorkspaceStore`, `useEnvironmentStore`, `useThemeStore` |
-| **TypeScript DTOs / Interfaces**| `PascalCase` | `HttpRequestDto`, `HttpResponseDto`, `WorkspaceDto` |
-| **Constants** | `UPPER_SNAKE_CASE` | `DEFAULT_TIMEOUT_MS`, `VAULT_SALT_SIZE` |
-| **Test Functions** | `snake_case` | `should_execute_get_request_successfully` |
+| Element                           | Convention                 | Example                                                                        |
+| :-------------------------------- | :------------------------- | :----------------------------------------------------------------------------- |
+| **Rust Modules**                  | `snake_case`               | `execute_request_service.rs`, `variable_resolver_adapter.rs`                   |
+| **Rust Structs & Enums**          | `PascalCase`               | `HttpRequest`, `HttpResponse`, `HttpMethod`, `DomainError`                     |
+| **Domain Models & Value Objects** | `PascalCase`; IDs as `*Id` | `Request`, `Collection`, `Environment`, `RequestId`, `WorkspaceId`             |
+| **Outbound Ports (Traits)**       | `*Port`                    | `HttpClientPort`, `ScriptEnginePort`, `VaultPort`, `FileSystemPort`            |
+| **Infrastructure Adapters**       | `*Adapter`                 | `ReqwestAdapter`, `QuickJSAdapter`, `AesVaultAdapter`, `JsonFileSystemAdapter` |
+| **Use-Case Services**             | `*Service`                 | `ExecuteRequestService`, `RunCollectionService`, `LintSpecService`             |
+| **Tauri Commands**                | `snake_case`               | `execute_http_request`, `save_workspace`, `open_vault`                         |
+| **React Components**              | `PascalCase`               | `RequestEditor.tsx`, `ResponsePanel.tsx`, `WorkspaceSelector.tsx`              |
+| **Zustand Stores**                | `use*Store`                | `useWorkspaceStore`, `useEnvironmentStore`, `useThemeStore`                    |
+| **TypeScript DTOs / Interfaces**  | `PascalCase`               | `HttpRequestDto`, `HttpResponseDto`, `WorkspaceDto`                            |
+| **Constants**                     | `UPPER_SNAKE_CASE`         | `DEFAULT_TIMEOUT_MS`, `VAULT_SALT_SIZE`                                        |
+| **Test Functions**                | `snake_case`               | `should_execute_get_request_successfully`                                      |
 
 Name for **what it is or does**, not the implementation: `HttpClientPort`, not `ReqwestHttpClient` (HTTP client is swappable behind the port). Use-case names speak **business language** (`ExecuteRequest`, `EncryptSecret`), not HTTP verbs or Tauri IPC details.
 
@@ -60,12 +60,12 @@ tyny-pulse/
 
 ### Framework Boundary (Enforced by `AGENTS.md` Rule 1)
 
-| Layer | Allowed / Prohibited Imports |
-| :--- | :--- |
-| **`domain/`** | **Pure Rust Only** — No `reqwest`, no `tauri`, no `rquickjs`, no `serde_json` IO, no file system calls. Entities, value objects, and domain error enums are written in pure Rust. |
-| **`application/`** | **Pure Business Logic** — Depends only on `domain` models and `ports/` traits. Imports `serde` for DTO serialization. No `infrastructure` adapters, no `tauri` UI bindings, no raw file system IO. |
-| **`infrastructure/`** | **Full Technology Adapters Allowed** — `reqwest`, `rquickjs`, `aes-gcm`, `tokio`, `std::fs`, `serde_json`. Implements traits defined in `application/ports/` or `domain/`. |
-| **`src/` (React)** | **Presentation Only** — React 19 components, Zustand state, Tailwind CSS, Framer Motion. Uses Tauri `invoke()` exclusively via typed hooks. **No business or encryption logic in React.** |
+| Layer                 | Allowed / Prohibited Imports                                                                                                                                                                       |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`domain/`**         | **Pure Rust Only** — No `reqwest`, no `tauri`, no `rquickjs`, no `serde_json` IO, no file system calls. Entities, value objects, and domain error enums are written in pure Rust.                  |
+| **`application/`**    | **Pure Business Logic** — Depends only on `domain` models and `ports/` traits. Imports `serde` for DTO serialization. No `infrastructure` adapters, no `tauri` UI bindings, no raw file system IO. |
+| **`infrastructure/`** | **Full Technology Adapters Allowed** — `reqwest`, `rquickjs`, `aes-gcm`, `tokio`, `std::fs`, `serde_json`. Implements traits defined in `application/ports/` or `domain/`.                         |
+| **`src/` (React)**    | **Presentation Only** — React 19 components, Zustand state, Tailwind CSS, Framer Motion. Uses Tauri `invoke()` exclusively via typed hooks. **No business or encryption logic in React.**          |
 
 Tauri IPC command handlers in `application/commands/` are **thin**: they deserialize IPC JSON payloads, delegate execution to an application service (`*Service`), and map the result back to an IPC DTO response.
 
@@ -86,13 +86,13 @@ Tauri IPC command handlers in `application/commands/` are **thin**: they deseria
 
 House patterns are established across the codebase — **reuse them instead of inventing variants**.
 
-| Pattern | Where it lives | Use it when | Avoid / Instead |
-| :--- | :--- | :--- | :--- |
-| **Adapter (Ports & Adapters)** | `src-tauri/src/infrastructure/` | Crossing technical boundaries (HTTP, QuickJS, AES-256, FileSystem) | Calling `reqwest` or `std::fs` directly inside business services |
-| **Strategy** | `src-tauri/src/infrastructure/` | Executing requests across different protocols (REST vs GraphQL vs WebSocket) | Giant `match` statements in a single execution service |
-| **Facade (Use-Case Service)** | `src-tauri/src/application/services/` | Orchestrating domain entities and ports for a single business use case | Putting orchestration logic directly inside Tauri IPC command handlers |
-| **Builder** | Domain value objects & requests | Creating complex `HttpRequest` objects with optional headers, params, and body | Telescoping functions with 10 arguments |
-| **DTO Translation** | `src-tauri/src/application/commands/` | Mapping domain entities to/from IPC-safe TypeScript DTOs | Exposing domain entities containing unencrypted secrets over Tauri IPC |
+| Pattern                        | Where it lives                        | Use it when                                                                    | Avoid / Instead                                                        |
+| :----------------------------- | :------------------------------------ | :----------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| **Adapter (Ports & Adapters)** | `src-tauri/src/infrastructure/`       | Crossing technical boundaries (HTTP, QuickJS, AES-256, FileSystem)             | Calling `reqwest` or `std::fs` directly inside business services       |
+| **Strategy**                   | `src-tauri/src/infrastructure/`       | Executing requests across different protocols (REST vs GraphQL vs WebSocket)   | Giant `match` statements in a single execution service                 |
+| **Facade (Use-Case Service)**  | `src-tauri/src/application/services/` | Orchestrating domain entities and ports for a single business use case         | Putting orchestration logic directly inside Tauri IPC command handlers |
+| **Builder**                    | Domain value objects & requests       | Creating complex `HttpRequest` objects with optional headers, params, and body | Telescoping functions with 10 arguments                                |
+| **DTO Translation**            | `src-tauri/src/application/commands/` | Mapping domain entities to/from IPC-safe TypeScript DTOs                       | Exposing domain entities containing unencrypted secrets over Tauri IPC |
 
 ---
 

@@ -8,11 +8,11 @@ How to build, sign, package, and release **Tyny Pulse** across desktop operating
 
 ## 0. Release Artifacts & Targets
 
-| Target OS | Installer Format | Architecture | Output Path |
-| :--- | :--- | :--- | :--- |
-| **Windows** | `.exe` (NSIS), `.msi` | `x86_64-pc-windows-msvc` | `src-tauri/target/release/bundle/nsis/` |
-| **macOS** | `.dmg`, `.app` | `aarch64-apple-darwin` / `x86_64-apple-darwin` | `src-tauri/target/release/bundle/dmg/` |
-| **Linux** | `.AppImage`, `.deb` | `x86_64-unknown-linux-gnu` | `src-tauri/target/release/bundle/appimage/` |
+| Target OS   | Installer Format      | Architecture                                   | Output Path                                 |
+| :---------- | :-------------------- | :--------------------------------------------- | :------------------------------------------ |
+| **Windows** | `.exe` (NSIS), `.msi` | `x86_64-pc-windows-msvc`                       | `src-tauri/target/release/bundle/nsis/`     |
+| **macOS**   | `.dmg`, `.app`        | `aarch64-apple-darwin` / `x86_64-apple-darwin` | `src-tauri/target/release/bundle/dmg/`      |
+| **Linux**   | `.AppImage`, `.deb`   | `x86_64-unknown-linux-gnu`                     | `src-tauri/target/release/bundle/appimage/` |
 
 ---
 
@@ -39,6 +39,7 @@ Releases are fully automated via GitHub Actions (`.github/workflows/release.yml`
 ### Step-by-Step Release Flow:
 
 1. **Verify Local Quality Gate:**
+
    ```bash
    cargo check --manifest-path src-tauri/Cargo.toml
    npm run build
@@ -51,6 +52,7 @@ Releases are fully automated via GitHub Actions (`.github/workflows/release.yml`
    - `src-tauri/Cargo.toml` (`version = "1.0.0"`)
 
 3. **Commit & Tag Release:**
+
    ```bash
    git add .
    git commit -m "chore(release): prepare v1.0.0"

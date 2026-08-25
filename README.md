@@ -50,15 +50,15 @@ Official Domain: [https://tyny.ca](https://tyny.ca)
 
 ## Tech Stack
 
-| Category | Technology |
-| :--- | :--- |
-| **Core & Desktop Engine** | ![Tauri](https://img.shields.io/badge/Tauri_v2-24C8D5?style=for-the-badge&logo=tauri&logoColor=white) ![Rust](https://img.shields.io/badge/Rust_Tokio-000000?style=for-the-badge&logo=rust&logoColor=white) |
-| **HTTP & Runtime Services** | `reqwest` (HTTP Client), `QuickJS` (JS Sandbox), `tokio` (Async Multithreading) |
-| **Frontend Framework** | ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white) |
-| **Build & Styling** | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) Tailwind CSS / CSS Modules, Framer Motion, Lucide Icons |
-| **State Management** | ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white) |
-| **Security** | AES-256-GCM encryption at rest |
-| **Target OS** | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) |
+| Category                    | Technology                                                                                                                                                                                                                                                                                                     |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Core & Desktop Engine**   | ![Tauri](https://img.shields.io/badge/Tauri_v2-24C8D5?style=for-the-badge&logo=tauri&logoColor=white) ![Rust](https://img.shields.io/badge/Rust_Tokio-000000?style=for-the-badge&logo=rust&logoColor=white)                                                                                                    |
+| **HTTP & Runtime Services** | `reqwest` (HTTP Client), `QuickJS` (JS Sandbox), `tokio` (Async Multithreading)                                                                                                                                                                                                                                |
+| **Frontend Framework**      | ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)                                                                                        |
+| **Build & Styling**         | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) Tailwind CSS / CSS Modules, Framer Motion, Lucide Icons                                                                                                                                                        |
+| **State Management**        | ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white)                                                                                                                                                                                                         |
+| **Security**                | AES-256-GCM encryption at rest                                                                                                                                                                                                                                                                                 |
+| **Target OS**               | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) |
 
 ---
 
@@ -86,6 +86,7 @@ tyny-pulse/
 ```
 
 ### Boundary Rules
+
 - **Domain & Application layers** in Rust never import infrastructure code or web framework bindings.
 - **Frontend state** stays decoupled from Tauri IPC commands via clean service adapters.
 - **Zero-Cloud Lock-In:** All workspace states reside locally in user-controlled JSON files.
@@ -109,25 +110,30 @@ Ensure you have the following installed on your development environment:
 ## Getting Started
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/daniel-castilho/postman-tauri-clone.git tyny-pulse
 cd tyny-pulse
 ```
 
 ### 2. Install dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Run in Development Mode
+
 ```bash
 npm run tauri dev
 ```
 
 ### 4. Build for Production
+
 ```bash
 npm run tauri build
 ```
+
 The compiled, native installers (`.exe`, `.msi`, `.dmg`, `.AppImage`, `.deb`) will be generated inside `src-tauri/target/release/bundle/`.
 
 ---
@@ -148,13 +154,13 @@ $BIN run collections/smoke.json \
     -r report.junit
 ```
 
-| Flag | Purpose |
-| :--- | :--- |
-| `-e`, `--env <path>` | Load an environment JSON file |
-| `-g`, `--globals <path>` | Load global variables JSON |
-| `-v`, `--var <key=value>` | Override/inject an environment variable (repeatable) |
-| `-r`, `--report <path>` | Write a report file (`.json` or `.xml`/`.junit` decides the writer) |
-| `-f`, `--format json\|junit` | Force the writer when the extension is unknown |
+| Flag                         | Purpose                                                             |
+| :--------------------------- | :------------------------------------------------------------------ |
+| `-e`, `--env <path>`         | Load an environment JSON file                                       |
+| `-g`, `--globals <path>`     | Load global variables JSON                                          |
+| `-v`, `--var <key=value>`    | Override/inject an environment variable (repeatable)                |
+| `-r`, `--report <path>`      | Write a report file (`.json` or `.xml`/`.junit` decides the writer) |
+| `-f`, `--format json\|junit` | Force the writer when the extension is unknown                      |
 
 Exit codes: `0` all tests passed · `1` test failures · `2` usage/input error · `3` domain error.
 
@@ -164,14 +170,14 @@ A ready-to-copy GitHub Actions workflow lives in [`.github/workflows/tyny-cli-ci
 
 ## Commands
 
-| Purpose | Command |
-| :--- | :--- |
-| **Run Dev Server (Vite + Tauri)** | `npm run tauri dev` |
-| **Run Web Preview Only** | `npm run dev` |
-| **Type Check & Web Build** | `npm run build` |
-| **Build Native Desktop Binary** | `npm run tauri build` |
-| **Run Rust Backend Checks** | `cd src-tauri && cargo check` |
-| **Run Rust Tests** | `cd src-tauri && cargo test` |
+| Purpose                           | Command                       |
+| :-------------------------------- | :---------------------------- |
+| **Run Dev Server (Vite + Tauri)** | `npm run tauri dev`           |
+| **Run Web Preview Only**          | `npm run dev`                 |
+| **Type Check & Web Build**        | `npm run build`               |
+| **Build Native Desktop Binary**   | `npm run tauri build`         |
+| **Run Rust Backend Checks**       | `cd src-tauri && cargo check` |
+| **Run Rust Tests**                | `cd src-tauri && cargo test`  |
 
 ---
 
@@ -180,37 +186,40 @@ A ready-to-copy GitHub Actions workflow lives in [`.github/workflows/tyny-cli-ci
 Tyny Pulse includes an isolated **JavaScript Execution Engine** powered by QuickJS. You can automate test workflows, validate payloads, and manipulate environment variables using the `pm.*` API.
 
 ### Pre-request Script Example
+
 ```javascript
 // Generate dynamic tokens or timestamps before sending the request
 const timestamp = new Date().toISOString();
-pm.environment.set("request_time", timestamp);
+pm.environment.set('request_time', timestamp);
 
-const randomId = "test_" + Math.floor(Math.random() * 10000);
-pm.environment.set("test_correlation_id", randomId);
+const randomId = 'test_' + Math.floor(Math.random() * 10000);
+pm.environment.set('test_correlation_id', randomId);
 ```
 
 ### Response Test Script Example
+
 ```javascript
 // Post-request assertion workflow
-pm.test("Status code is 200 OK", () => {
-    expect(pm.response.status).to.equal(200);
+pm.test('Status code is 200 OK', () => {
+  expect(pm.response.status).to.equal(200);
 });
 
-pm.test("Response time is under 200ms", () => {
-    expect(pm.response.responseTime).to.be.below(200);
+pm.test('Response time is under 200ms', () => {
+  expect(pm.response.responseTime).to.be.below(200);
 });
 
-pm.test("Validate User Payload", () => {
-    const json = pm.response.json();
-    expect(json.id).to.be.a("number");
-    expect(json.email).to.include("@");
-    
-    // Save token for subsequent requests in collection
-    pm.environment.set("auth_token", json.token);
+pm.test('Validate User Payload', () => {
+  const json = pm.response.json();
+  expect(json.id).to.be.a('number');
+  expect(json.email).to.include('@');
+
+  // Save token for subsequent requests in collection
+  pm.environment.set('auth_token', json.token);
 });
 ```
 
 ### Bundled Script Libraries
+
 Sandbox scripts can import well-known MIT libraries via `require`:
 
 ```javascript
@@ -219,13 +228,16 @@ const dayjs = require('dayjs');
 const CryptoJS = require('crypto-js');
 const { v4: uuidv4 } = require('uuid');
 
-pm.test("Signed payload is deterministic", () => {
-    const signature = CryptoJS.HmacSHA256(JSON.stringify({ id: uuidv4() }), pm.environment.get("secret"));
-    expect(signature.toString()).to.be.a("string");
+pm.test('Signed payload is deterministic', () => {
+  const signature = CryptoJS.HmacSHA256(
+    JSON.stringify({ id: uuidv4() }),
+    pm.environment.get('secret'),
+  );
+  expect(signature.toString()).to.be.a('string');
 });
 
-pm.test("Formatted timestamp", () => {
-    expect(dayjs().format('YYYY-MM-DD')).to.be.a("string");
+pm.test('Formatted timestamp', () => {
+  expect(dayjs().format('YYYY-MM-DD')).to.be.a('string');
 });
 ```
 
@@ -280,11 +292,11 @@ Libraries are bundled at build time (`src-tauri/assets/script-libs/`, see `THIRD
 
 ## Documentation & License
 
-| Document | Purpose |
-| :--- | :--- |
-| [`README.md`](README.md) | Project overview, architecture, setup, and scripting guide |
-| [`AGENTS.md`](AGENTS.md) | Guidelines for AI agents and human contributors |
-| [`docs/progress.md`](docs/progress.md) | Feature implementation roadmap & architectural milestones |
+| Document                                             | Purpose                                                           |
+| :--------------------------------------------------- | :---------------------------------------------------------------- |
+| [`README.md`](README.md)                             | Project overview, architecture, setup, and scripting guide        |
+| [`AGENTS.md`](AGENTS.md)                             | Guidelines for AI agents and human contributors                   |
+| [`docs/progress.md`](docs/progress.md)               | Feature implementation roadmap & architectural milestones         |
 | [`rename_to_tyny_pulse.sh`](rename_to_tyny_pulse.sh) | Automated script to rename package references across the codebase |
 
 Designed & Maintained with ❤️ for [Tyny.ca](https://tyny.ca).

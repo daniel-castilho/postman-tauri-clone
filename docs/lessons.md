@@ -30,7 +30,7 @@ Practical findings from developing, testing, and hardening **Tyny Pulse**. Add t
 
 ## 4. Pending Lessons & Future Log
 
-*(This section is updated as new debugging lessons and infrastructure findings emerge during development.)*
+_(This section is updated as new debugging lessons and infrastructure findings emerge during development.)_
 
 ---
 

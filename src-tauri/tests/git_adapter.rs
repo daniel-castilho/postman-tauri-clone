@@ -151,7 +151,7 @@ fn security_exclusions_keep_vault_files_out_of_status() {
     rt.block_on(adapter.commit(&path, "chore: baseline")).unwrap();
 
     // get_status must create the security exclusions block on first read.
-    let status = rt.block_on(adapter.get_status(&path)).unwrap();
+    rt.block_on(adapter.get_status(&path)).unwrap();
     let gitignore = std::fs::read_to_string(workspace.join(".gitignore"))
         .expect("get_status must generate .gitignore");
     for required in ["*.vault.enc", ".vault.key", ".env.local"] {

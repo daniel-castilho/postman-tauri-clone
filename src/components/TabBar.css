@@ -55,11 +55,21 @@
   min-width: 32px;
 }
 
-.tab-method[data-method="GET"] { color: #61affe; }
-.tab-method[data-method="POST"] { color: #49cc90; }
-.tab-method[data-method="PUT"] { color: #fca130; }
-.tab-method[data-method="DELETE"] { color: #f93e3e; }
-.tab-method[data-method="PATCH"] { color: #50e3c2; }
+.tab-method[data-method='GET'] {
+  color: #61affe;
+}
+.tab-method[data-method='POST'] {
+  color: #49cc90;
+}
+.tab-method[data-method='PUT'] {
+  color: #fca130;
+}
+.tab-method[data-method='DELETE'] {
+  color: #f93e3e;
+}
+.tab-method[data-method='PATCH'] {
+  color: #50e3c2;
+}
 
 .tab-name {
   font-size: 0.8rem;

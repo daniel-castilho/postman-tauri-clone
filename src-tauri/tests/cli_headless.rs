@@ -84,7 +84,7 @@ fn headless_run_against_mock_server_returns_exit_zero_and_writes_junit() {
     let junit = std::fs::read_to_string(&report_path).expect("junit report written");
     assert!(junit.contains("<testsuites name=\"Sample Collection\""));
     assert!(junit.contains("<testcase name=\"status is 200\""));
-    assert!(junit.contains("<failure") == false);
+    assert!(!junit.contains("<failure"));
 }
 
 #[test]

@@ -1,9 +1,15 @@
-import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { Play, X, CheckCircle2, XCircle, Loader2, BarChart3 } from "lucide-react";
-import { useWorkspaceStore } from "../store/workspaceStore";
-import type { CollectionItem, CollectionRunReport, Environment, RequestRunResult, TestResult } from "../types/ipc";
-import "./CollectionRunner.css";
+import { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import { Play, X, CheckCircle2, XCircle, Loader2, BarChart3 } from 'lucide-react';
+import { useWorkspaceStore } from '../store/workspaceStore';
+import type {
+  CollectionItem,
+  CollectionRunReport,
+  Environment,
+  RequestRunResult,
+  TestResult,
+} from '../types/ipc';
+import './CollectionRunner.css';
 
 interface CollectionRunnerProps {
   items: CollectionItem[];
@@ -23,14 +29,14 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
     setReport(null);
     setError(null);
     try {
-      const result = await invoke<CollectionRunReport>("run_collection", {
+      const result = await invoke<CollectionRunReport>('run_collection', {
         items,
-        environment: environment || { id: "default", name: "No Env", variables: [] },
+        environment: environment || { id: 'default', name: 'No Env', variables: [] },
         globals,
-        sessionVars: sessionVariables
+        sessionVars: sessionVariables,
       });
       setReport(result);
-    } catch (e: any) {
+    } catch (e) {
       setError(typeof e === 'string' ? e : JSON.stringify(e));
     } finally {
       setRunning(false);
@@ -53,9 +59,11 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
         <div className="runner-content">
           {!report && !running && (
             <div className="runner-prepare">
-              <p>Você está prestes a executar <strong>{items.length} itens</strong> sequencialmente.</p>
+              <p>
+                Você está prestes a executar <strong>{items.length} itens</strong> sequencialmente.
+              </p>
               <div className="runner-env-hint">
-                Ambiente Ativo: <span>{environment?.name || "Nenhum"}</span>
+                Ambiente Ativo: <span>{environment?.name || 'Nenhum'}</span>
               </div>
               <button onClick={handleRun} className="start-run-btn">
                 <Play size={16} fill="currentColor" />
@@ -100,7 +108,9 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
                     <div className="report-item-header">
                       <span className="report-item-name">{res.requestName}</span>
                       <div className="report-item-meta">
-                        <span className={`status-badge ${res.status < 300 ? 'ok' : 'err'}`}>{res.status}</span>
+                        <span className={`status-badge ${res.status < 300 ? 'ok' : 'err'}`}>
+                          {res.status}
+                        </span>
                         <span className="time-badge">{res.timeMs}ms</span>
                       </div>
                     </div>
@@ -115,8 +125,10 @@ export function CollectionRunner({ items, environment, onClose }: CollectionRunn
                   </div>
                 ))}
               </div>
-              
-              <button onClick={onClose} className="finish-run-btn">Fechar Relatório</button>
+
+              <button onClick={onClose} className="finish-run-btn">
+                Fechar Relatório
+              </button>
             </div>
           )}
         </div>

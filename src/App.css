@@ -58,23 +58,43 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
 }
 
 * {
@@ -197,9 +217,15 @@ body {
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .send-btn:hover {
@@ -291,7 +317,7 @@ body {
 .tabs {
   display: flex;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .tab-btn {
@@ -443,12 +469,17 @@ body {
   justify-content: center;
   padding: 4px;
 }
-.env-settings-btn:hover { color: var(--text-main); }
+.env-settings-btn:hover {
+  color: var(--text-main);
+}
 
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -473,10 +504,21 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-.modal-header h2 { margin: 0; font-size: 1.1rem; }
-.close-modal-btn { background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
 
-.modal-body { padding: 1rem; }
+.modal-body {
+  padding: 1rem;
+}
 
 .hint-text {
   font-size: 0.8rem;
@@ -505,13 +547,14 @@ body {
   padding: 0 1rem;
   min-height: 44px;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.response-header-left, .response-header-right {
+.response-header-left,
+.response-header-right {
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -560,8 +603,14 @@ body {
   color: var(--text-muted);
 }
 
-.status-badge.status-ok { color: #4caf50; font-weight: 600; }
-.status-badge.status-err { color: #f44336; font-weight: 600; }
+.status-badge.status-ok {
+  color: #4caf50;
+  font-weight: 600;
+}
+.status-badge.status-err {
+  color: #f44336;
+  font-weight: 600;
+}
 
 .meta-item {
   color: var(--text-muted);
@@ -571,7 +620,7 @@ body {
 .response-toggles {
   display: flex;
   gap: 0.2rem;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 6px;
   padding: 2px;
 }
@@ -609,11 +658,23 @@ body {
 }
 
 /* JSON Syntax Highlighting */
-.json-key   { color: #d2a8ff; }
-.json-string { color: #a5d6ff; }
-.json-number { color: #79c0ff; }
-.json-boolean { color: #ff7b72; font-weight: bold; }
-.json-null    { color: #ff7b72; font-style: italic; }
+.json-key {
+  color: #d2a8ff;
+}
+.json-string {
+  color: #a5d6ff;
+}
+.json-number {
+  color: #79c0ff;
+}
+.json-boolean {
+  color: #ff7b72;
+  font-weight: bold;
+}
+.json-null {
+  color: #ff7b72;
+  font-style: italic;
+}
 
 /* Body tab toolbar */
 .body-toolbar {
@@ -649,7 +710,7 @@ body {
 .mode-btn.active {
   background: var(--accent-color);
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .file-input-wrapper {
@@ -768,12 +829,26 @@ body {
   border-radius: 50%;
 }
 
-.ws-status-indicator.connected { color: #3fb950; }
-.ws-status-indicator.connected::before { background: #3fb950; box-shadow: 0 0 8px #3fb950; }
-.ws-status-indicator.disconnected { color: var(--text-muted); }
-.ws-status-indicator.disconnected::before { background: var(--text-muted); }
-.ws-status-indicator.connecting { color: #d29922; }
-.ws-status-indicator.connecting::before { background: #d29922; animation: pulse 1s infinite; }
+.ws-status-indicator.connected {
+  color: #3fb950;
+}
+.ws-status-indicator.connected::before {
+  background: #3fb950;
+  box-shadow: 0 0 8px #3fb950;
+}
+.ws-status-indicator.disconnected {
+  color: var(--text-muted);
+}
+.ws-status-indicator.disconnected::before {
+  background: var(--text-muted);
+}
+.ws-status-indicator.connecting {
+  color: #d29922;
+}
+.ws-status-indicator.connecting::before {
+  background: #d29922;
+  animation: pulse 1s infinite;
+}
 
 .ws-actions {
   display: flex;
@@ -798,8 +873,14 @@ body {
   background: var(--bg-color);
 }
 
-.ws-btn.connect { color: #3fb950; border-color: rgba(63, 185, 80, 0.4); }
-.ws-btn.disconnect { color: #f85149; border-color: rgba(248, 81, 73, 0.4); }
+.ws-btn.connect {
+  color: #3fb950;
+  border-color: rgba(63, 185, 80, 0.4);
+}
+.ws-btn.disconnect {
+  color: #f85149;
+  border-color: rgba(248, 81, 73, 0.4);
+}
 
 .ws-messages {
   flex: 1;
@@ -906,14 +987,29 @@ body {
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .beautify-btn {
@@ -938,7 +1034,7 @@ body {
   flex-wrap: wrap;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -1027,7 +1123,7 @@ body {
 }
 
 .loading-spinner::before {
-  content: "";
+  content: '';
   width: 40px;
   height: 40px;
   border: 3px solid var(--accent-soft);
@@ -1037,7 +1133,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* cURL Modal */
@@ -1135,14 +1233,14 @@ body {
   letter-spacing: 0.5px;
 }
 
-.passed .test-status-badge { 
-  background: rgba(16, 185, 129, 0.2); 
-  color: #34d399; 
+.passed .test-status-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
 }
 
-.failed .test-status-badge { 
-  background: rgba(239, 68, 68, 0.2); 
-  color: #f87171; 
+.failed .test-status-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
 }
 
 .test-name {
@@ -1176,7 +1274,6 @@ body {
   padding: 3rem;
   font-style: italic;
 }
-
 
 /* Scripts Tab */
 .scripts-pane {
@@ -1216,7 +1313,7 @@ body {
 .script-editor:focus {
   outline: none;
   border-color: var(--accent-color);
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .close-cookies-btn {
@@ -1258,7 +1355,7 @@ body {
 .cookies-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   z-index: 1000;
 }
@@ -1589,7 +1686,9 @@ body {
   opacity: 0.6;
 }
 
-.rule-delete:hover { opacity: 1; }
+.rule-delete:hover {
+  opacity: 1;
+}
 
 .rule-body {
   background: #000;
@@ -1652,11 +1751,6 @@ body {
   line-height: 1.5;
 }
 
-
-
-
-
-
 /* Console Log Styles */
 .console-log-list {
   display: flex;
@@ -1702,9 +1796,15 @@ body {
   text-align: center;
 }
 
-.log_level_info .log-level-badge { background: #3b82f6; }
-.log_level_warn .log-level-badge { background: #f59e0b; }
-.log_level_error .log-level-badge { background: #ef4444; }
+.log_level_info .log-level-badge {
+  background: #3b82f6;
+}
+.log_level_warn .log-level-badge {
+  background: #f59e0b;
+}
+.log_level_error .log-level-badge {
+  background: #ef4444;
+}
 
 .log-content {
   margin: 0;

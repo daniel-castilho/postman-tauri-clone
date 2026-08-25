@@ -10,20 +10,26 @@ jobs:
   verify:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Frontend bundle is built BEFORE any Rust step: with the default
       # `custom-protocol` feature, `tauri::generate_context!` reads the
       # `frontendDist` directory (../dist) at compile time and aborts when
       # it is missing.
       - name: setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: npm
 
       - name: install frontend dependencies
         run: npm ci
+
+      - name: frontend lint (eslint)
+        run: npm run lint
+
+      - name: frontend format check (prettier)
+        run: npm run format:check
 
       - name: frontend typecheck & production build
         run: npm run build
@@ -34,7 +40,7 @@ jobs:
           components: clippy
 
       - name: cache cargo build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -64,7 +70,7 @@ jobs:
 
       - name: rust lint (zero warnings policy)
         working-directory: src-tauri
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets -- -D warnings
 
       - name: rust unit tests + regenerate TypeScript bindings
         working-directory: src-tauri

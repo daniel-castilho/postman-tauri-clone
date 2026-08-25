@@ -4,12 +4,12 @@ These JavaScript bundles are embedded into the Tyny Pulse binary and exposed
 to user scripts through `require('name')` inside the QuickJS sandbox.
 They are distributed under their original licenses, reproduced below.
 
-| Library | Version | Source | License | File |
-| :--- | :--- | :--- | :--- | :--- |
-| lodash | 4.17.21 | https://cdnjs.com/libraries/lodash (via jsDelivr) | MIT | `lodash.min.js` |
-| dayjs | 1.11.13 | https://day.js.org (via jsDelivr) | MIT | `dayjs.min.js` |
-| crypto-js | 4.2.0 | https://github.com/brix/crypto-js (via jsDelivr) | MIT | `crypto-js.min.js` |
-| uuid | 8.3.2 | https://github.com/uuidjs/uuid (via jsDelivr) | MIT | `uuid.min.js` |
+| Library   | Version | Source                                            | License | File               |
+| :-------- | :------ | :------------------------------------------------ | :------ | :----------------- |
+| lodash    | 4.17.21 | https://cdnjs.com/libraries/lodash (via jsDelivr) | MIT     | `lodash.min.js`    |
+| dayjs     | 1.11.13 | https://day.js.org (via jsDelivr)                 | MIT     | `dayjs.min.js`     |
+| crypto-js | 4.2.0   | https://github.com/brix/crypto-js (via jsDelivr)  | MIT     | `crypto-js.min.js` |
+| uuid      | 8.3.2   | https://github.com/uuidjs/uuid (via jsDelivr)     | MIT     | `uuid.min.js`      |
 
 ## MIT License
 

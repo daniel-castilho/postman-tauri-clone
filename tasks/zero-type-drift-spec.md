@@ -13,6 +13,7 @@
 Eliminate manual type duplication and runtime serialization bugs between the Rust core engine and the React 19 frontend by establishing **automated compile-time type generation**.
 
 ### In Scope (P1)
+
 - Integration of `ts-rs` crate into `src-tauri/Cargo.toml`.
 - Annotation of all Tauri IPC command DTOs with `#[derive(TS)]` and attributes (`#[ts(export, export_to = "../../src/types/generated/")]`).
 - Automated TypeScript file generation triggered during `cargo test`.
@@ -21,6 +22,7 @@ Eliminate manual type duplication and runtime serialization bugs between the Rus
 - CI type-drift protection guard (`git diff --exit-code src/types/generated/`).
 
 ### Out of Scope
+
 - Rewriting backend Rust domain models or application use-case logic.
 - Replacing Tauri IPC with alternative transport protocols (e.g. gRPC-Web).
 - Modifying visual UI layout or Framer Motion animation logic.
@@ -29,12 +31,12 @@ Eliminate manual type duplication and runtime serialization bugs between the Rus
 
 ## 2. Current Vulnerabilities & Type-Drift Risks
 
-| Area | Current Implementation | Risk / Problem |
-| :--- | :--- | :--- |
-| **Tauri IPC DTOs** | Defined as Rust structs in `src-tauri/src/application/commands/` | Changes to field names or optional fields require manual TS updates. |
-| **Frontend Interfaces** | Hand-written TypeScript interfaces in `src/types/` | High risk of type drift; field renames in Rust cause runtime `undefined` bugs in React. |
-| **Enums & Unions** | Enums like `HttpMethod` or `ScriptStatus` mirrored manually | Value mismatches (e.g. `"GET"` vs `"Get"`) fail silently during IPC JSON parsing. |
-| **CI Verification** | No automated check verifying Rust ↔ TS synchronization | Out-of-sync types can be merged into `main` unnoticed. |
+| Area                    | Current Implementation                                           | Risk / Problem                                                                          |
+| :---------------------- | :--------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+| **Tauri IPC DTOs**      | Defined as Rust structs in `src-tauri/src/application/commands/` | Changes to field names or optional fields require manual TS updates.                    |
+| **Frontend Interfaces** | Hand-written TypeScript interfaces in `src/types/`               | High risk of type drift; field renames in Rust cause runtime `undefined` bugs in React. |
+| **Enums & Unions**      | Enums like `HttpMethod` or `ScriptStatus` mirrored manually      | Value mismatches (e.g. `"GET"` vs `"Get"`) fail silently during IPC JSON parsing.       |
+| **CI Verification**     | No automated check verifying Rust ↔ TS synchronization           | Out-of-sync types can be merged into `main` unnoticed.                                  |
 
 ---
 
@@ -71,14 +73,18 @@ Eliminate manual type duplication and runtime serialization bugs between the Rus
 ## 4. Required Technical Changes
 
 ### 4.1 Dependency Addition (`src-tauri/Cargo.toml`)
+
 Add `ts-rs` to dev-dependencies and dependencies with Tauri compatibility features:
+
 ```toml
 [dependencies]
 ts-rs = { version = "10.1", features = ["serde-json-impl"] }
 ```
 
 ### 4.2 Rust DTO Annotations
+
 Annotate every Tauri IPC input/output DTO across all command modules:
+
 - `HttpRequestDto`, `HttpResponseDto`, `HttpHeadersDto`
 - `WorkspaceDto`, `CollectionDto`, `FolderDto`
 - `EnvironmentDto`, `EnvironmentVariableDto`
@@ -86,6 +92,7 @@ Annotate every Tauri IPC input/output DTO across all command modules:
 - `SpecLintResultDto`, `SpecDiagnosticDto`
 
 Example annotation pattern:
+
 ```rust
 use ts_rs::TS;
 use serde::{Serialize, Deserialize};
@@ -102,7 +109,9 @@ pub struct HttpRequestDto {
 ```
 
 ### 4.3 Automated Export Test Runner
+
 Add a dedicated test module `src-tauri/src/application/commands/export_ts_bindings.rs`:
+
 ```rust
 #[cfg(test)]
 mod tests {
@@ -122,6 +131,7 @@ mod tests {
 ```
 
 ### 4.4 Frontend Refactoring (`src/`)
+
 - Update `tsconfig.json` path alias `@/types/generated/*` resolving to `src/types/generated/*`.
 - Replace imports in React components and Zustand stores (`src/store/useWorkspaceStore.ts`).
 - Remove redundant hand-written `.ts` interface files.

@@ -13,6 +13,7 @@
 Provide a **cloud-free, zero-lock-in collaboration experience** for **Tyny Pulse** by embedding native Git version control capabilities directly into the desktop application. Developers can track changes, review visual JSON diffs, commit, pull, and push workspace collections and environments using their own Git remotes (GitHub, GitLab, Bitbucket, self-hosted) without relying on proprietary cloud backends.
 
 ### In Scope (P3)
+
 - Pure Rust domain port `GitRepositoryPort` in `src-tauri/src/application/ports/git_repository.rs`.
 - Concrete Git adapter (`git2` crate or subprocess `GitProcessAdapter`) in `src-tauri/src/infrastructure/git/`.
 - Tauri IPC command wrappers in `src-tauri/src/application/commands/git_tasks.rs`.
@@ -27,6 +28,7 @@ Provide a **cloud-free, zero-lock-in collaboration experience** for **Tyny Pulse
 - Automatic workspace `.gitignore` generator preventing accidental commit of local vaults or machine overrides.
 
 ### Out of Scope
+
 - Full interactive 3-way conflict resolution editor (conflicts flag files for manual editor resolution or simple ours/theirs choice in P3).
 - Built-in SSH key generation / agent manager (uses system SSH agent / HTTPS credential helper).
 
